@@ -1,0 +1,364 @@
+{
+  "name": "geographic_site_1",
+  "phenotype_concept": "geographic_site",
+  "concept_variant": 1,
+  "description": "Recruitment/field center, baseline clinic, or geographic region.",
+  "version": 4,
+  "dcc_harmonization_id": 98,
+  "data_type": "encoded",
+  "measurement_units": null,
+  "has_age_variable": false,
+  "date_harmonized": "2018-07-31 15:51:38",
+  "dcc_harmonization_comments": "For studies with multiple exams or visits, baseline (visit 1) clinic was recorded for this variable. All harmonized values are prepended with the study name abbreviation to ensure that values are unique across studies.\n\n#### GENOA\n\nThis study does not provide a specific variable containing this information. However, the dbGaP study page (phs001238) contains the information that the African-American cohort participants were recruited from Jackson, MS, and that the European-American cohort participants were recruited from Rochester, MN. To determine cohort membership, and thus geographic site, for each subject, the study variable `GENDER` from cohort-specific datasets was used as a component variable for this harmonized trait even though the values in the `GENDER` variable are not used.\n",
+  "encoded_values": [
+    {
+      "code": "ARIC_A",
+      "value": "field center A representing one of four anonymized centers (Forsyth County, NC, USA; Jackson, MS, USA; the northwest suburbs of Minneapolis, MN, USA; and Washington County, MD, USA) where baseline exam was conducted for ARIC (Atherosclerosis Risk in Communities)"
+    },
+    {
+      "code": "ARIC_B",
+      "value": "field center B representing one of four anonymized centers (Forsyth County, NC, USA; Jackson, MS, USA; the northwest suburbs of Minneapolis, MN, USA; and Washington County, MD, USA) where baseline exam was conducted for ARIC (Atherosclerosis Risk in Communities)"
+    },
+    {
+      "code": "ARIC_C",
+      "value": "field center C representing one of four anonymized centers (Forsyth County, NC, USA; Jackson, MS, USA; the northwest suburbs of Minneapolis, MN, USA; and Washington County, MD, USA) where baseline exam was conducted for ARIC (Atherosclerosis Risk in Communities)"
+    },
+    {
+      "code": "ARIC_D",
+      "value": "field center D representing one of four anonymized centers (Forsyth County, NC, USA; Jackson, MS, USA; the northwest suburbs of Minneapolis, MN, USA; and Washington County, MD, USA) where baseline exam was conducted for ARIC (Atherosclerosis Risk in Communities)"
+    },
+    {
+      "code": "CARDIA_1",
+      "value": "field center 1 representing one of four anonymized field centers (University of Alabama, Birmingham, AL, USA; Northwestern University, IL, USA; University of Minnesota, MN, USA; Kaiser Foundation Research Institute, Oakland, CA, USA) for subjects in the CARE project within CARDIA (Coronary Artery Risk Development in Young Adults)"
+    },
+    {
+      "code": "CARDIA_2",
+      "value": "field center 2 representing one of four anonymized field centers (University of Alabama, Birmingham, AL, USA; Northwestern University, IL, USA; University of Minnesota, MN, USA; Kaiser Foundation Research Institute, Oakland, CA, USA) for subjects in the CARE project within CARDIA (Coronary Artery Risk Development in Young Adults)"
+    },
+    {
+      "code": "CARDIA_3",
+      "value": "field center 3 representing one of four anonymized field centers (University of Alabama, Birmingham, AL, USA; Northwestern University, IL, USA; University of Minnesota, MN, USA; Kaiser Foundation Research Institute, Oakland, CA, USA) for subjects in the CARE project within CARDIA (Coronary Artery Risk Development in Young Adults)"
+    },
+    {
+      "code": "CARDIA_4",
+      "value": "field center 4 representing one of four anonymized field centers (University of Alabama, Birmingham, AL, USA; Northwestern University, IL, USA; University of Minnesota, MN, USA; Kaiser Foundation Research Institute, Oakland, CA, USA) for subjects in the CARE project within CARDIA (Coronary Artery Risk Development in Young Adults)"
+    },
+    {
+      "code": "CHS_BOWMAN.GRAY",
+      "value": "clinic at Bowman Gray University (Forsyth County, NC, USA) for CHS (Cardiovascular Health Study)"
+    },
+    {
+      "code": "CHS_DAVIS",
+      "value": "clinic at Davis University (Sacramento County, CA, USA) for CHS (Cardiovascular Health Study)"
+    },
+    {
+      "code": "CHS_HOPKINS",
+      "value": "clinic at Johns Hopkins University (Washington County, MD, USA) for CHS (Cardiovascular Health Study)"
+    },
+    {
+      "code": "CHS_PITT",
+      "value": "clinic at University of Pittsburgh (Pittsburgh, PA, USA) for CHS (Cardiovascular Health Study)"
+    },
+    {
+      "code": "COPDGene_C01",
+      "value": "clinical center C01 representing one of 21 de-identified clinical centers for COPDGene (Genetic Epidemiology of COPD)"
+    },
+    {
+      "code": "COPDGene_C02",
+      "value": "clinical center C02 representing one of 21 de-identified clinical centers for COPDGene (Genetic Epidemiology of COPD)"
+    },
+    {
+      "code": "COPDGene_C03",
+      "value": "clinical center C03 representing one of 21 de-identified clinical centers for COPDGene (Genetic Epidemiology of COPD)"
+    },
+    {
+      "code": "COPDGene_C04",
+      "value": "clinical center C04 representing one of 21 de-identified clinical centers for COPDGene (Genetic Epidemiology of COPD)"
+    },
+    {
+      "code": "COPDGene_C05",
+      "value": "clinical center C05 representing one of 21 de-identified clinical centers for COPDGene (Genetic Epidemiology of COPD)"
+    },
+    {
+      "code": "COPDGene_C06",
+      "value": "clinical center C06 representing one of 21 de-identified clinical centers for COPDGene (Genetic Epidemiology of COPD)"
+    },
+    {
+      "code": "COPDGene_C07",
+      "value": "clinical center C07 representing one of 21 de-identified clinical centers for COPDGene (Genetic Epidemiology of COPD)"
+    },
+    {
+      "code": "COPDGene_C08",
+      "value": "clinical center C08 representing one of 21 de-identified clinical centers for COPDGene (Genetic Epidemiology of COPD)"
+    },
+    {
+      "code": "COPDGene_C09",
+      "value": "clinical center C09 representing one of 21 de-identified clinical centers for COPDGene (Genetic Epidemiology of COPD)"
+    },
+    {
+      "code": "COPDGene_C10",
+      "value": "clinical center C10 representing one of 21 de-identified clinical centers for COPDGene (Genetic Epidemiology of COPD)"
+    },
+    {
+      "code": "COPDGene_C11",
+      "value": "clinical center C11 representing one of 21 de-identified clinical centers for COPDGene (Genetic Epidemiology of COPD)"
+    },
+    {
+      "code": "COPDGene_C12",
+      "value": "clinical center C12 representing one of 21 de-identified clinical centers for COPDGene (Genetic Epidemiology of COPD)"
+    },
+    {
+      "code": "COPDGene_C13",
+      "value": "clinical center C13 representing one of 21 de-identified clinical centers for COPDGene (Genetic Epidemiology of COPD)"
+    },
+    {
+      "code": "COPDGene_C14",
+      "value": "clinical center C14 representing one of 21 de-identified clinical centers for COPDGene (Genetic Epidemiology of COPD)"
+    },
+    {
+      "code": "COPDGene_C15",
+      "value": "clinical center C15 representing one of 21 de-identified clinical centers for COPDGene (Genetic Epidemiology of COPD)"
+    },
+    {
+      "code": "COPDGene_C16",
+      "value": "clinical center C16 representing one of 21 de-identified clinical centers for COPDGene (Genetic Epidemiology of COPD)"
+    },
+    {
+      "code": "COPDGene_C17",
+      "value": "clinical center C17 representing one of 21 de-identified clinical centers for COPDGene (Genetic Epidemiology of COPD)"
+    },
+    {
+      "code": "COPDGene_C18",
+      "value": "clinical center C18 representing one of 21 de-identified clinical centers for COPDGene (Genetic Epidemiology of COPD)"
+    },
+    {
+      "code": "COPDGene_C19",
+      "value": "clinical center C19 representing one of 21 de-identified clinical centers for COPDGene (Genetic Epidemiology of COPD)"
+    },
+    {
+      "code": "COPDGene_C20",
+      "value": "clinical center C20 representing one of 21 de-identified clinical centers for COPDGene (Genetic Epidemiology of COPD)"
+    },
+    {
+      "code": "COPDGene_C21",
+      "value": "clinical center C21 representing one of 21 de-identified clinical centers for COPDGene (Genetic Epidemiology of COPD)"
+    },
+    {
+      "code": "GENOA_MN",
+      "value": "recruitment from Rochester, MN, US"
+    },
+    {
+      "code": "GENOA_MS",
+      "value": "recruitment from Jackson, MS, US"
+    },
+    {
+      "code": "GOLDN_MN",
+      "value": "recruitment center at Minneapolis, MN, USA for GOLDN (Genetics of Lipid Lowering Drugs and Diet Network Lipodemics Study)"
+    },
+    {
+      "code": "GOLDN_UT",
+      "value": "recruitment center at Salt Lake City, UT, USA for GOLDN (Genetics of Lipid Lowering Drugs and Diet Network Lipodemics Study)"
+    },
+    {
+      "code": "HCHS_SOL_Bronx",
+      "value": "recruitment center Bronx, NY, USA for HCHS/SOL (Hispanic Community Health Study/Study of Latinos)"
+    },
+    {
+      "code": "HCHS_SOL_Chicago",
+      "value": "recruitment center Chicago, IL, USA for HCHS/SOL (Hispanic Community Health Study/Study of Latinos)"
+    },
+    {
+      "code": "HCHS_SOL_Miami",
+      "value": "recruitment center Miami, FL, USA for HCHS/SOL (Hispanic Community Health Study/Study of Latinos)"
+    },
+    {
+      "code": "HCHS_SOL_SanDiego",
+      "value": "recruitment center San Diego, CA, USA for HCHS/SOL (Hispanic Community Health Study/Study of Latinos)"
+    },
+    {
+      "code": "JHS_Hinds",
+      "value": "recruitment from urban and rural areas of Hinds county, MS, USA for JHS (Jackson Heart Study)"
+    },
+    {
+      "code": "JHS_Madison",
+      "value": "recruitment from urban and rural areas of Madison county, MS, USA for JHS (Jackson Heart Study)"
+    },
+    {
+      "code": "JHS_Rankin",
+      "value": "recruitment from urban and rural areas of Rankin county, MS, USA for JHS (Jackson Heart Study)"
+    },
+    {
+      "code": "JHS_Unknown",
+      "value": "recruitment from unknown county in MS, USA for JHS (Jackson Heart Study)"
+    },
+    {
+      "code": "Mayo_VTE_Midwest_US",
+      "value": "state of residence (at time of enrollment for Mayo_VTE study) is in the South region of the USA as defined by the Census Bureau"
+    },
+    {
+      "code": "Mayo_VTE_Northeast_US",
+      "value": "state of residence (at time of enrollment for Mayo_VTE study) is in the Northeast region of the USA as defined by the Census Bureau"
+    },
+    {
+      "code": "Mayo_VTE_non_US",
+      "value": "state of residence (at time of enrollment for Mayo_VTE study) is from a country outside the USA"
+    },
+    {
+      "code": "Mayo_VTE_South_US",
+      "value": "state of residence (at time of enrollment for Mayo_VTE study) is in the Midwest region of the USA as defined by the Census Bureau"
+    },
+    {
+      "code": "Mayo_VTE_West_US",
+      "value": "state of residence (at time of enrollment for Mayo_VTE study) is in the West region of the USA as defined by the Census Bureau"
+    },
+    {
+      "code": "MESA_COL",
+      "value": "field center/baseline clinic at Columbia University, NY, USA for MESA (Multi-Ethnic Study of Atherosclerosis Cohort)"
+    },
+    {
+      "code": "MESA_JHU",
+      "value": "field center/baseline clinic at Johns Hopkins University, MD, USA for MESA (Multi-Ethnic Study of Atherosclerosis Cohort)"
+    },
+    {
+      "code": "MESA_NWU",
+      "value": "field center/baseline clinic at Northwestern University, IL, USA for MESA (Multi-Ethnic Study of Atherosclerosis Cohort)"
+    },
+    {
+      "code": "MESA_UCLA",
+      "value": "field center/baseline clinic at University of California, Los Angeles, CA, USA for MESA (Multi-Ethnic Study of Atherosclerosis Cohort)"
+    },
+    {
+      "code": "MESA_UMN",
+      "value": "field center/baseline clinic at University of Minnesota, MN, USA for MESA (Multi-Ethnic Study of Atherosclerosis Cohort)"
+    },
+    {
+      "code": "MESA_WFU",
+      "value": "field center/baseline clinic at Wake Forest University, NC, USA for MESA (Multi-Ethnic Study of Atherosclerosis Cohort)"
+    },
+    {
+      "code": "SAS_Apia.urban",
+      "value": "recruitment census region of Apia Urban Area in Samoa for SAS (Genome-wide Association Study of Adiposity in Samoans)"
+    },
+    {
+      "code": "SAS_NW.Upola",
+      "value": "recruitment census region of Northwest Upola in Samoa for SAS (Genome-wide Association Study of Adiposity in Samoans)"
+    },
+    {
+      "code": "SAS_rest.Upola",
+      "value": "recruitment census region including rest of Upola in Samoa for SAS (Genome-wide Association Study of Adiposity in Samoans)"
+    },
+    {
+      "code": "SAS_Savaii",
+      "value": "recruitment census region of Savaii in Samoa for SAS (Genome-wide Association Study of Adiposity in Samoans)"
+    },
+    {
+      "code": "WHI_Midwest",
+      "value": "recruitment from Midwest region of the USA for WHI (Womens Health Initiative)"
+    },
+    {
+      "code": "WHI_Northeast",
+      "value": "recruitment from Northeast region of the USA for WHI (Womens Health Initiative)"
+    },
+    {
+      "code": "WHI_South",
+      "value": "recruitment from South region of the USA for WHI (Womens Health Initiative)"
+    },
+    {
+      "code": "WHI_West",
+      "value": "recruitment from West region of the USA for WHI (Womens Health Initiative)"
+    }
+  ],
+  "controlled_vocabulary": [
+    {
+      "source": "UMLS",
+      "version": "2018AB",
+      "id": "C2828208"
+    }
+  ],
+  "harmonization_units": [
+    {
+      "name": "ARIC",
+      "component_study_variables": ["phs000280.v4.pht004063.v2.phv00204813.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  library(magrittr)\n\n # harmonize recruitment site for ARIC\n # 4 anonymized centers where exams were conducted; values A, B, C, D\n # The ARIC dbGaP study site acknowledges four communities:\n # Forsyth County, NC; Jackson, MS; the northwest suburbs of Minneapolis, MN;\n # and Washington County, MD.\n # The correspondence of the four communities with the values A, B, C, D is not given.\n\n # CENTERID variable given for each exam\n # we use Exam 1 center as the recruitment site\n\n source_data <- phen_list$source_data\n dat <- source_data[[\"pht004063\"]]\n\n # Select and rename relevant traits\n dat <- dat %>% transmute(topmed_subject_id, geographic_site = CENTERID) %>%\n    # omit incomplete records\n    na.omit()\n\n  # concatenate values with study abbrev to insure unique values across studies\n dat <- dat %>% mutate(geographic_site = paste(\"ARIC\", geographic_site, sep = \"_\"))\n\n return(dat)\n}\n"
+    },
+    {
+      "name": "CARDIA",
+      "component_study_variables": ["phs000285.v3.pht001700.v2.phv00116398.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  library(magrittr)\n\n # harmonize recruitment site for CARDIA\n # \"CENTER_CARE\" = center for CARE project\n # anonymized 1 - 4 for 4 field centers\n # The CARDIA dbGaP study site acknowledges four field centers:\n # University of Alabama, Birmingham; Northwester University; University of Minnesota;\n #  Kaiser Foundation Research Institute, Oakland CA.\n # The correspondence of the values 1 - 4 with the four field centers is not given.\n\n source_data <- phen_list$source_data\n dat <- source_data[[\"pht001700\"]]\n\n # Select and rename relevant traits\n dat <- dat %>% transmute(topmed_subject_id, geographic_site = CENTER_CARE) %>%\n    # omit incomplete records\n    na.omit()\n\n # concatenate values with study abbrev to insure unique values across studies\n dat <- dat %>% mutate(geographic_site = paste(\"CARDIA\", geographic_site, sep = \"_\"))\n\n return(dat)\n}\n"
+    },
+    {
+      "name": "CHS",
+      "component_study_variables": ["phs000287.v6.pht001452.v1.phv00100291.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  library(magrittr)\n\n # harmonize recruitment site for CHS\n # \"CLINIC\" = CHS clinic\n # 3 = BOWMAN GRAY\n # 4 = DAVIS\n # 5 = HOPKINS\n # 6 = PITT\n # abbreviations for Universities\n\n source_data <- phen_list$source_data\n dat <- source_data[[\"pht001452\"]]\n\n # Select and rename relevant traits\n dat <- dat %>% transmute(topmed_subject_id, geographic_site = CLINIC) %>%\n    # omit incomplete records\n    na.omit()\n\n # change site variable to integer and shift to number 1 - 4 instead of 3 - 6\n dat$geographic_site <- as.integer(dat$geographic_site) - 2\n\n # establish desired values and assign accordingly\n vals <- c(\"BOWMAN.GRAY\", \"DAVIS\", \"HOPKINS\", \"PITT\")\n dat$geographic_site <- vals[dat$geographic_site]\n\n  # concatenate values with study abbrev to insure unique values across studies\n dat <- dat %>% mutate(geographic_site = paste(\"CHS\", geographic_site, sep = \"_\"))\n\n return(dat)\n}\n"
+    },
+    {
+      "name": "COPDGene",
+      "component_study_variables": ["phs000179.v5.pht002239.v4.phv00159569.v4"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  library(magrittr)\n\n # harmonize recruitment site for COPDGene\n # 21 clinical centers with \"deid_center\" = de-identified site codes with values C1 - C21\n\n source_data <- phen_list$source_data\n dat <- source_data[[\"pht002239\"]]\n\n # Select and rename relevant traits\n dat <- dat %>% transmute(topmed_subject_id, geographic_site = deid_center) %>%\n    # omit incomplete records\n    na.omit()\n\n  # concatenate values with study abbrev to insure unique values across studies\n dat <- dat %>% mutate(geographic_site = paste(\"COPDGene\", geographic_site, sep = \"_\"))\n\n return(dat)\n}\n"
+    },
+    {
+      "name": "GENOA",
+      "component_study_variables": ["phs001238.v1.pht006039.v1.phv00277506.v1", "phs001238.v1.pht006653.v1.phv00307787.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n # harmonize geographic_site (recruitment site)for GENOA\n    source_data <- phen_list$source_data\n\n# from study dbgap page: AA study from Jackson, MS and EA study from Rochester, MN\n# concatenate values with study abbrev to insure unique values across studies\n\n   dat1 <- source_data[[\"pht006039\"]]   # AA sub-study\n   dat1 <- dat1 %>% mutate(geographic_site = \"GENOA_MS\")\n\n   dat2 <- source_data[[\"pht006653\"]]   # EA sub_study\n   dat2 <- dat2 %>% mutate(geographic_site = \"GENOA_MN\")\n\n   dat <- rbind(dat1, dat2)\n\n   dat <- dat %>% select(topmed_subject_id, geographic_site)\n\n   return(dat)\n}\n"
+    },
+    {
+      "name": "GOLDN",
+      "component_study_variables": ["phs000741.v2.pht003918.v2.phv00202105.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  library(magrittr)\n\n # harmonize recruitment site for GOLDN\n # \"center\" = recruitment center\n # M = Minneapolis, MN\n # U = Salt Lake City, Utah\n # use state abbreviation MN, UT\n\n source_data <- phen_list$source_data\n dat <- source_data[[\"pht003918\"]]\n\n # Select and rename relevant traits\n dat <- dat %>% transmute(topmed_subject_id, geographic_site = center) %>%\n    # omit incomplete records\n    na.omit()\n\n  # establish desired values and assign accordingly\n dat$geographic_site[dat$geographic_site == \"M\"] <- \"MN\"\n dat$geographic_site[dat$geographic_site == \"U\"] <- \"UT\"\n\n  # concatenate values with study abbrev to insure unique values across studies\n dat <- dat %>% mutate(geographic_site = paste(\"GOLDN\", geographic_site, sep = \"_\"))\n\n return(dat)\n}\n"
+    },
+    {
+      "name": "HCHS_SOL",
+      "component_study_variables": ["phs000810.v1.pht004715.v1.phv00226256.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  library(magrittr)\n\n # harmonize recruitment site for HCHS/SOL\n # \"CENTER\" = recruitment center\n # B = Bronx\n # C = Chicago\n # M = Miami\n # S = San Diego\n\n source_data <- phen_list$source_data\n dat <- source_data[[\"pht004715\"]]\n\n # Select and rename relevant traits\n dat <- dat %>% transmute(topmed_subject_id, geographic_site = CENTER) %>%\n    # omit incomplete records\n    na.omit()\n\n  # establish desired values and assign accordingly\n dat$geographic_site[dat$geographic_site == \"B\"] <- \"Bronx\"\n dat$geographic_site[dat$geographic_site == \"C\"] <- \"Chicago\"\n dat$geographic_site[dat$geographic_site == \"M\"] <- \"Miami\"\n dat$geographic_site[dat$geographic_site == \"S\"] <- \"SanDiego\"\n\n # concatenate values with study abbrev to insure unique values across studies\n dat <- dat %>% mutate(geographic_site = paste(\"HCHS_SOL\", geographic_site, sep = \"_\"))\n\n return(dat)\n}\n"
+    },
+    {
+      "name": "JHS",
+      "component_study_variables": ["phs000286.v5.pht001949.v1.phv00126005.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  library(magrittr)\n\n # harmonize recruitment site for JHS\n # given as counties in Missisippi\n # COUNTY has values \"Hinds\", \"Madison\", \"Rankin\", \"Unkn\" (Unknown)\n\n source_data <- phen_list$source_data\n dat <- source_data[[\"pht001949\"]]\n\n # select subjects with COUNTY = \"Unkn\"  or missing and change value to \"Unknown\"\n sel <- dat$COUNTY %in% \"Unkn\" | is.na(dat$COUNTY)\n dat$COUNTY[sel] <- \"Unknown\"\n\n # Select and rename relevant traits\n dat <- dat %>% transmute(topmed_subject_id, geographic_site = COUNTY)\n\n  # concatenate values with study abbrev to insure unique values across studies\n dat <- dat %>% mutate(geographic_site = paste(\"JHS\", geographic_site, sep = \"_\"))\n\n return(dat)\n}\n"
+    },
+    {
+      "name": "Mayo_VTE",
+      "component_study_variables": ["phs000289.v2.pht001886.v2.phv00121847.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n\n# harmonize geographic_site for GWAS_VTE (parent Mayo)\n# state_enroll gives state of residence at time of enrollment\n# group US states into Census Bureau regions: Northeast, Midwest, South, West\n\n  datt <- phen_list$source_data[[\"pht001886\"]]\n\n ntheast <- c(\"ME\", \"NH\", \"VT\", \"MA\", \"RI\", \"CT\", \"NY\", \"NJ\", \"PA\")\n mdwest <- c(\"IL\", \"IN\", \"IA\", \"KS\", \"MI\", \"MN\", \"MO\", \"NE\", \"ND\", \"OH\", \"SD\", \"WI\")\n sth <- c(\"DE\", \"FL\", \"GA\", \"MD\", \"NC\", \"SC\", \"VA\", \"WV\", \"AL\", \"KY\", \"MS\", \"TN\",\n        \"AR\", \"LA\", \"OK\", \"TX\")\n west <- c(\"MT\", \"WY\", \"CO\", \"NM\", \"ID\", \"UT\", \"AZ\", \"NV\", \"WA\", \"OR\", \"CA\", \"AK\", \"HI\")\n\ndatt <- datt %>% mutate(geographic_site = ifelse(state_enroll %in% ntheast, \"Mayo_VTE_Northeast_US\",\n     ifelse (state_enroll %in% mdwest, \"Mayo_VTE_Midwest_US\",\n      ifelse(state_enroll %in% sth, \"Mayo_VTE_South_US\",\n        ifelse(state_enroll %in% west, \"Mayo_VTE_West_US\", \"Mayo_VTE_non_US\") )))) %>%\n     select(topmed_subject_id, geographic_site) %>% na.omit\n\n   return(datt)\n}\n"
+    },
+    {
+      "name": "MESA_AirNR",
+      "component_study_variables": ["phs000209.v13.pht001111.v4.phv00082644.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  library(magrittr)\n\n # harmonize recruitment site for MESA AirNR\n # 6 field centers (same for Classic, AirNR, Family)\n # 3 = WFU = Wake Forest University\n # 4 = COL = Columbia University\n # 5 = JHU = John Hopkins University\n # 6 = UMN = University of Minnesota\n # 7 = NWU = Northwestern University\n # 8 = UCLA = University of California, Los Angeles\n # assign the university abbreviations for values\n # site variable is associated with each exam\n # we use Exam 1 \"site1c\" as the recruitment site\n\n source_data <- phen_list$source_data\n dat <- source_data[[\"pht001111\"]]\n\n # Select and rename relevant traits\n dat <- dat %>% transmute(topmed_subject_id, geographic_site = site1c) %>%\n    # omit incomplete records\n    na.omit()\n\n # change site variable to integer and shift to become 1 - 6 instead of 3 - 8\n dat$geographic_site <- as.integer(dat$geographic_site) - 2\n\n # establish desired values and assign accordingly\n vals <- c(\"WFU\", \"COL\", \"JHU\", \"UMN\", \"NWU\", \"UCLA\")\n dat$geographic_site <- vals[dat$geographic_site]\n\n  # concatenate values with study abbrev to insure unique values across studies\n dat <- dat %>% mutate(geographic_site = paste(\"MESA\", geographic_site, sep = \"_\"))\n\n return(dat)\n}\n"
+    },
+    {
+      "name": "MESA_Classic",
+      "component_study_variables": ["phs000209.v13.pht001116.v10.phv00084447.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  library(magrittr)\n\n # harmonize recruitment site for MESA Classic\n # 6 field centers (same for Classic, AirNR, Family)\n # 3 = WFU = Wake Forest University\n # 4 = COL = Columbia University\n # 5 = JHU = Johns Hopkins University\n # 6 = UMN = University of Minnesota\n # 7 = NWU = Northwestern University\n # 8 = UCLA = University of California, Los Angeles\n # assign the university abbreviations for values\n # site variable is associated with each exam\n # we use Exam 1 \"site1c\" as the recruitment site\n\n source_data <- phen_list$source_data\n dat <- source_data[[\"pht001116\"]]\n\n # Select and rename relevant traits\n dat <- dat %>% transmute(topmed_subject_id, geographic_site = site1c) %>%\n    # omit incomplete records\n    na.omit()\n\n # change site variable to integer and shift to become 1 - 6 instead of 3 - 8\n dat$geographic_site <- as.integer(dat$geographic_site) - 2\n\n # establish desired values and assign accordingly\n vals <- c(\"WFU\", \"COL\", \"JHU\", \"UMN\", \"NWU\", \"UCLA\")\n dat$geographic_site <- vals[dat$geographic_site]\n\n  # concatenate values with study abbrev to insure unique values across studies\n dat <- dat %>% mutate(geographic_site = paste(\"MESA\", geographic_site, sep = \"_\"))\n\n return(dat)\n}\n"
+    },
+    {
+      "name": "MESA_Family",
+      "component_study_variables": ["phs000209.v13.pht001121.v3.phv00087075.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  library(magrittr)\n\n # harmonize recruitment site for MESA Family\n # 6 field centers (same for Classic, AirNR, Family)\n # 3 = WFU = Wake Forest University\n # 4 = COL = Columbia University\n # 5 = JHU = John Hopkins University\n # 6 = UMN = University of Minnesota\n # 7 = NWU = Northwestern University\n # 8 = UCLA = University of California, Los Angeles\n # assign the university abbreviations for values\n # variable is \"sitefc\"\n\n source_data <- phen_list$source_data\n dat <- source_data[[\"pht001121\"]]\n\n # Select and rename relevant traits\n dat <- dat %>% transmute(topmed_subject_id, geographic_site = sitefc) %>%\n    # omit incomplete records\n    na.omit()\n\n # change site variable to integer and shift to become 1 - 6 instead of 3 - 8\n dat$geographic_site <- as.integer(dat$geographic_site) - 2\n\n # establish desired values and assign accordingly\n vals <- c(\"WFU\", \"COL\", \"JHU\", \"UMN\", \"NWU\", \"UCLA\")\n dat$geographic_site <- vals[dat$geographic_site]\n\n  # concatenate values with study abbrev to insure unique values across studies\n dat <- dat %>% mutate(geographic_site = paste(\"MESA\", geographic_site, sep = \"_\"))\n\n return(dat)\n}\n"
+    },
+    {
+      "name": "SAS",
+      "component_study_variables": ["phs000914.v1.pht005253.v1.phv00258677.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  library(magrittr)\n\n # harmonize recruitment site for SAS (Samoan)\n # \"Census_Region\" = census region of Samoa\n # 1 = Apia Urban Area assign \"Apia.urban\"\n # 2 = Northwest Upola assign \"NW.Upola\"\n # 3 = Rest of Upola  assign \"rest.Upola\"\n # 4 = Savaii         assign \"Savaii\"\n\n source_data <- phen_list$source_data\n dat <- source_data[[\"pht005253\"]]\n\n # Select and rename relevant traits\n dat <- dat %>% transmute(topmed_subject_id, geographic_site = Census_Region) %>%\n    # omit incomplete records\n    na.omit()\n\n # convert values to integer; assign new values\n dat$geographic_site <- as.integer(dat$geographic_site)\n vals <- c(\"Apia.urban\", \"NW.Upola\", \"rest.Upola\", \"Savaii\")\n dat$geographic_site <- vals[dat$geographic_site]\n\n  # concatenate values with study abbrev to insure unique values across studies\n dat <- dat %>% mutate(geographic_site = paste(\"SAS\", geographic_site, sep = \"_\"))\n\n return(dat)\n}\n"
+    },
+    {
+      "name": "WHI",
+      "component_study_variables": ["phs000200.v11.pht001031.v6.phv00080435.v6"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  library(magrittr)\n\n # harmonize recruitment site for WHI\n # study documents mention 40 clinical centers but there is no variable for these\n # we will use \"REGION\" which gives 4 regions of the US(suggested by study investigator)\n # 1 = Northeast\n # 2 = South\n # 3 = Midwest\n # 4 = West\n\n source_data <- phen_list$source_data\n dat <- source_data[[\"pht001031\"]]\n\n # Select and rename relevant traits\n dat <- dat %>% transmute(topmed_subject_id, geographic_site = REGION) %>%\n    # omit incomplete records\n    na.omit()\n\n # change site variable to integer\n dat$geographic_site <- as.integer(dat$geographic_site)\n\n # establish desired values and assign accordingly\n vals <- c(\"Northeast\", \"South\", \"Midwest\", \"West\")\n dat$geographic_site <- vals[dat$geographic_site]\n\n  # concatenate values with study abbrev to insure unique values across studies\n dat <- dat %>% mutate(geographic_site = paste(\"WHI\", geographic_site, sep = \"_\"))\n\n return(dat)\n}\n"
+    }
+  ]
+}

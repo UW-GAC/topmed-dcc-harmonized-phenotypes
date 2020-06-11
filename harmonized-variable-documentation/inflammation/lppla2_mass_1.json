@@ -1,0 +1,41 @@
+{
+  "name": "lppla2_mass_1",
+  "phenotype_concept": "lppla2_mass",
+  "concept_variant": 1,
+  "description": "Mass of lipoprotein-associated phospholipase A2 (LP-PLA2), also known as platelet-activating factor acetylhydrolase, measured in blood.",
+  "version": 1,
+  "dcc_harmonization_id": 138,
+  "data_type": "decimal",
+  "measurement_units": "ng / mL",
+  "has_age_variable": true,
+  "date_harmonized": "2019-04-15 15:40:39",
+  "dcc_harmonization_comments": "This variable was harmonized by converting the component study variables to the appropriate unit of measure as needed and, when possible, accounting for measurements outside an assay's limits of detection (LOD). If the information was available, measurements below the lower limit of detection (LLOD) were set to the LLOD and measurements above the upper limit of detection (ULOD) were set to the ULOD unless otherwise indicated in the study-specific sections below. Some studies identified subjects with measurements outside the LOD; see table below for more details. The assay(s) used to measure LP-PLA2 mass from serum or plasma differed by study and/or subcohort.\n\n#### FHS\n\nThe *_FHS_* Omni 1 Cohort included a variable on dbGaP (phv00172226) indicating which plate a sample was assayed on. Plate differences in LP-PLA2 mass were observed after adjusting for age and sex. \n\nThe *_FHS_* Original, New Offspring Spouse, and Omni 2 Cohorts are not included in this harmonized phenotype at this time.\n\n#### MESA\n\nA variable (phv00165048) indicating which plate a sample was assayed on is available on dbGaP. Plate differences in LP-PLA2 concentrations were observed after adjusting for age and sex. \n\nThe *_MESA_* Family and AirNR Cohorts are not included in this harmonized phenotype at this time.\n\n#### Exam visit for LP-PLA2 mass measurements\n\n| Study or subcohort | Visit |\n|---------|----------|\n| CHS_Original | Baseline visit |\n| CHS_AfricanAmerican | Baseline visit |\n| FHS_Offspring | Exam 7 |\n| FHS_Gen3 | Exam 1 |\n| FHS_Omni1 | Exam 3 |\n| MESA_Classic | Exam 1 Main |\n\n#### Assay and limits of detection for LP-PLA2 mass measurements\n\n| Study or subcohort | Assay | LLOD | ULOD | Differentiated^1^ |\n|---------|----------|---------|---------|---------|\n| CHS | ELISA | 1.3 ng/mL |  NA  | No |\n| FHS| ELISA | 1.3 ng/mL |  NA  | No |\n| MESA | ELISA | 0.34 ng/mL | NA | No |\n\n1. The study included information indicating which measurements were below or above the limit of detection. If \"Yes\", measurements outside the LOD can be identified using component study or subcohort variables.\n\n#### Specimen type for LP-PLA2 mass measurements\n\nTable includes studies or subcohorts with known specimen types only.\n\n| Study or subcohort | Specimen |\n|---------|----------|\n| CHS | Plasma |\n| FHS | Plasma |\n| MESA | Serum |\n",
+  "encoded_values": [],
+  "controlled_vocabulary": [
+    {
+      "source": "UMLS",
+      "version": "2018AB",
+      "id": "C1543846"
+    }
+  ],
+  "harmonization_units": [
+    {
+      "name": "CHS",
+      "component_study_variables": ["phs000287.v6.pht001449.v1.phv00098769.v1", "phs000287.v6.pht001452.v1.phv00100487.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  #Dataset\n  dataset <- left_join(phen_list$source_data$pht001449,\n                       phen_list$source_data$pht001452,\n                       by = 'topmed_subject_id') %>%\n             rename(lppla2_mass = LPPLA2, age = AGEBL)\n\n  #Converting to numeric varaibles\n  dataset <- replace(dataset, dataset == 'NA', NA) %>%\n             mutate_if(is.character, as.numeric)\n\n  #Removing missing values\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "FHS",
+      "component_study_variables": ["phs000007.v29.pht000095.v6.phv00021963.v5", "phs000007.v29.pht000305.v5.phv00036411.v4", "phs000007.v29.pht002892.v4.phv00172227.v4", "phs000007.v29.pht003099.v4.phv00177928.v4", "phs000007.v29.pht003099.v4.phv00177930.v4", "phs000007.v29.pht003099.v4.phv00177934.v4", "phs000007.v29.pht003099.v4.phv00177942.v4"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  #Datasets\n  #Offspring, exam 7\n  lppla_of <- left_join(phen_list$source_data$pht000095,\n                        phen_list$source_data$pht003099,\n                        by = 'topmed_subject_id') %>%\n              select(topmed_subject_id, lppla2_mass = MASS, age = age7)\n\n  #Generation 3, exam 1\n  lppla_g3 <- left_join(phen_list$source_data$pht000305,\n                        phen_list$source_data$pht003099,\n                        by = 'topmed_subject_id') %>%\n              select(topmed_subject_id, lppla2_mass = mass, age = age1)\n\n  #OMNI1, exam 3\n  lppla_o1 <- left_join(phen_list$source_data$pht002892,\n                        phen_list$source_data$pht003099,\n                        by = 'topmed_subject_id') %>%\n              subset(idtype == 7) %>%\n              select(topmed_subject_id, lppla2_mass = plac, age = age3)\n\n  #Combining subcohorts\n  dataset <- bind_rows(lppla_of, lppla_g3) %>%\n             bind_rows(lppla_o1)\n\n  #Converting to numeric variables\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  # Remove records with NAs from dataset.\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "MESA",
+      "component_study_variables": ["phs000209.v13.pht001116.v10.phv00084442.v3", "phs000209.v13.pht002512.v1.phv00165050.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  #Dataset\n  dataset <- left_join(phen_list$source_data$pht002512,\n                      phen_list$source_data$pht001116,\n                      by = 'topmed_subject_id') %>%\n              rename(lppla2_mass = plac1a, age = age1c)\n\n  #Converting to numeric\n  dataset <- replace(dataset, dataset == 'NA', NA)\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  #Removing missing values\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    }
+  ]
+}

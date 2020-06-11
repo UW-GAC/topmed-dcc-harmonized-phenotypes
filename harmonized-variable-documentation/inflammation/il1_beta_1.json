@@ -1,0 +1,29 @@
+{
+  "name": "il1_beta_1",
+  "phenotype_concept": "il1_beta",
+  "concept_variant": 1,
+  "description": "Interleukin 1 beta (IL1b) concentration in blood.",
+  "version": 1,
+  "dcc_harmonization_id": 132,
+  "data_type": "decimal",
+  "measurement_units": "pg / mL",
+  "has_age_variable": true,
+  "date_harmonized": "2019-04-15 15:24:49",
+  "dcc_harmonization_comments": "This variable was harmonized by converting the component study variables to the appropriate unit of measure as needed and, when possible, accounting for measurements outside an assay's limits of detection (LOD). If the information was available, measurements below the lower limit of detection (LLOD) were set to the LLOD and measurements above the upper limit of detection (ULOD) were set to the ULOD unless otherwise indicated in the study-specific sections below. Some studies identified subjects with measurements outside the LOD; see table below for more details. The assay(s) used to measure IL1b concentration from serum or plasma differed by study and/or subcohort.\n\n#### CFS\n\nThe study identified values with low concentrations that had been extrapolated outside the assay range. These extrapolated values were set to the LLOD.\n\n#### Exam visit for IL1b measurements\n\n| Study or subcohort | Visit |\n|---------|----------|\n| CFS | Visit 5 |\n\n#### Assay and limits of detection for IL1b measurements\n\n| Study or subcohort | Assay | LLOD | ULOD | Differentiated^1^ |\n|---------|----------|---------|---------|---------|\n| CFS | Human Cytokine/Chemokine LINCOplex Kit | 0.06 pg/mL |  NA  | Yes |\n\n1. The study included information indicating which measurements were below or above the limit of detection. If \"Yes\", measurements outside the LOD can be identified using component study or subcohort variables.\n",
+  "encoded_values": [],
+  "controlled_vocabulary": [
+    {
+      "source": "UMLS",
+      "version": "2018AB",
+      "id": "C0796820"
+    }
+  ],
+  "harmonization_units": [
+    {
+      "name": "CFS",
+      "component_study_variables": ["phs000284.v1.pht001902.v1.phv00122012.v1", "phs000284.v1.pht001902.v1.phv00122015.v1", "phs000284.v1.pht001902.v1.phv00124068.v1", "phs000284.v1.pht001902.v1.phv00124071.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list) {\n  library(dplyr)\n\n  #Dataset\n  dataset <- phen_list$source_data$pht001902\n\n  #Subsetting to visit 5\n  dataset <- subset(dataset, visit == 5)\n\n  #Converting to numeric values\n  dataset$il1b[dataset$il1b %in% 'NA'] <- NA\n  dataset <- mutate(dataset, age = as.numeric(age), il1b = as.numeric(il1b))\n\n  #Replacing extrapolated values with LLOD\n  dataset$il1b[dataset$il1b_comment %in% 'extrapolated'] <- 0.06\n\n  #Selection variables and removing missing\n  dataset <- select(dataset, topmed_subject_id, il1b, age) %>%\n             rename(il1_beta = il1b)\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    }
+  ]
+}

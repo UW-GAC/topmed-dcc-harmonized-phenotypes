@@ -1,0 +1,46 @@
+{
+  "name": "bmi_baseline_1",
+  "phenotype_concept": "bmi_baseline",
+  "concept_variant": 1,
+  "description": "Body mass index calculated at baseline.",
+  "version": 3,
+  "dcc_harmonization_id": 103,
+  "data_type": "decimal",
+  "measurement_units": "kg/m^2",
+  "has_age_variable": true,
+  "date_harmonized": "2018-08-24 13:46:21",
+  "dcc_harmonization_comments": "This variable was calculated from harmonized baseline height and weight for all available studies using the formula $BMI = weight / height^2$.\n\n#### HVH\n\nThere are multiple observations for many subjects in the HVH phenotype file. In\nthese instances, we used the earliest observation for harmonization. Although\nthis harmonized phenotype is designated as \"baseline\", the concept of\n\"baseline\" does not apply to HVH based on its study design. Consult the study\ndocumentation for more details (phs001013).\n\n#### GOLDN\n\nWe used a BMI variable calculated by the study as the component variable, not height and weight variables.\n",
+  "encoded_values": [],
+  "controlled_vocabulary": [
+    {
+      "source": "UMLS",
+      "version": "2018AB",
+      "id": "C1305855"
+    }
+  ],
+  "harmonization_units": [
+    {
+      "name": "DCC_harmonized",
+      "component_study_variables": [],
+      "component_harmonized_variables": [
+        {
+          "dcc_harmonization_id": 99,
+          "name": "height_baseline_1",
+          "version": 4
+        },
+        {
+          "dcc_harmonization_id": 100,
+          "name": "weight_baseline_1",
+          "version": 3
+        }
+      ],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    harmonized_data <- phen_list$harmonized_data\n    # Join baseline height and weight datasets on topmed_subject_id\n    harmonized_data$height_baseline_1 %>%\n        inner_join(harmonized_data$weight_baseline_1, \"topmed_subject_id\") %>%\n        # Convert character variables to numeric\n        mutate_if(is.character, as.numeric) %>%\n        # Filter to observations where age variables match\n        filter(age_at_height_baseline_1 == age_at_weight_baseline_1) %>%\n        transmute(topmed_subject_id, age = age_at_height_baseline_1,\n            # Calculate BMI from weight(in kg) and height (in cm)\n            bmi_baseline = weight_baseline_1 / (height_baseline_1 / 100) ^ 2) %>%\n        # Exclude incomplete records\n        na.omit() %>%\n        return()\n}\n"
+    },
+    {
+      "name": "GOLDN",
+      "component_study_variables": ["phs000741.v2.pht003918.v2.phv00202104.v2", "phs000741.v2.pht003918.v2.phv00259051.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    phen_list$source_data$pht003918 %>%\n        # Convert BMI to numeric and rename\n        transmute(topmed_subject_id, age, bmi_baseline = as.numeric(BMI)) %>%\n        # Exclude incomplete records\n        na.omit() %>%\n        return()\n}\n"
+    }
+  ]
+}

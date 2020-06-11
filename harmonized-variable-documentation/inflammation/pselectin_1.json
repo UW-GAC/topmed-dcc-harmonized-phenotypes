@@ -1,0 +1,41 @@
+{
+  "name": "pselectin_1",
+  "phenotype_concept": "pselectin",
+  "concept_variant": 1,
+  "description": "P-selectin concentration in blood.",
+  "version": 1,
+  "dcc_harmonization_id": 143,
+  "data_type": "decimal",
+  "measurement_units": "ng / mL",
+  "has_age_variable": true,
+  "date_harmonized": "2019-04-15 15:52:08",
+  "dcc_harmonization_comments": "This variable was harmonized by converting the component study variables to the appropriate unit of measure as needed and, when possible, accounting for measurements outside an assay's limits of detection (LOD). If the information was available, measurements below the lower limit of detection (LLOD) were set to the LLOD and measurements above the upper limit of detection (ULOD) were set to the ULOD unless otherwise indicated in the study-specific sections below. Some studies identified subjects with measurements outside the LOD; see table below for more details. The assay(s) used to measure P-selectin concentration from serum or plasma differed by study and/or subcohort.\n\n#### FHS\n\nThe *_FHS_* Omni 1 Cohort included a variable on dbGaP (phv00172367) indicating which plate a sample was assayed on. Plate differences in P-selectin concentrations were observed after adjusting for age and sex. \n\nThe *_FHS_* Original and New Offspring Spouse Cohorts are not included in this harmonized phenotype at this time.\n\n#### Exam visit for P-selectin measurements\n\n| Study or subcohort | Visit |\n|---------|----------|\n| FHS_Offspring | Exam 7 |\n| FHS_Gen3 | Exam 1 |\n| FHS_Omni1 | Exam 3 |\n| FHS_Omni2 | Exam 1 |\n\n#### Assay and limits of detection for P-selectin measurements\n\n| Study or subcohort | Assay | LLOD | ULOD | Differentiated^1^ |\n|---------|----------|---------|---------|---------|\n| FHS_Offspring | ELISA | 0.5 ng/mL | NA | No |\n| FHS_Gen3 | ELISA | 0.5 ng/mL | NA  | Yes |\n| FHS_Omni1 | ELISA | 0.5 ng/mL | NA  | Yes |\n| FHS_Omni2 | ELISA | 0.5 ng/mL | NA  | Yes |\n\n1. The study included information indicating which measurements were below or above the limit of detection. If \"Yes\", measurements outside the LOD can be identified using component study or subcohort variables.\n\n\n#### Specimen type for P-selectin measurements\n\nTable includes studies or subcohorts with known specimen types only.\n\n| Study or subcohort | Specimen |\n|---------|----------|\n| FHS | Plasma |\n",
+  "encoded_values": [],
+  "controlled_vocabulary": [
+    {
+      "source": "UMLS",
+      "version": "2018AB",
+      "id": "C3890352"
+    }
+  ],
+  "harmonization_units": [
+    {
+      "name": "FHS_Gen3_Omni2",
+      "component_study_variables": ["phs000007.v29.pht002145.v3.phv00156677.v3", "phs000007.v29.pht002145.v3.phv00156678.v3", "phs000007.v29.pht003099.v4.phv00177930.v4"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  #Datasets\n  dataset <- left_join(phen_list$source_data$pht002145,\n                            phen_list$source_data$pht003099,\n                            by = 'topmed_subject_id') %>%\n                  rename(age = age1)\n\n  #Removing phantom samples (flag = 3)\n  dataset <- subset(dataset, flag == 1 | flag == 2)\n\n  #Converting to numeric values\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  #Selecting final variables\n  dataset <- select(dataset, topmed_subject_id, pselectin, age)\n\n  # Remove records with NAs from dataset.\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "FHS_Offspring",
+      "component_study_variables": ["phs000007.v29.pht000171.v6.phv00023892.v5", "phs000007.v29.pht003099.v4.phv00177942.v4"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  #dataset\n  dataset <- left_join(phen_list$source_data$pht000171, phen_list$source_data$pht003099) %>%\n             rename(pselectin = psel, age = age7)\n\n  #Changing to numeric variables\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  # Remove records with NAs from dataset.\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "FHS_Omni1",
+      "component_study_variables": ["phs000007.v29.pht002897.v4.phv00172372.v4", "phs000007.v29.pht003099.v4.phv00177928.v4", "phs000007.v29.pht003099.v4.phv00177934.v4"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  #Datasets\n  dataset <- left_join(phen_list$source_data$pht002897,\n                         phen_list$source_data$pht003099,\n                         by = 'topmed_subject_id') %>%\n                rename(age = age3) %>%\n                subset(idtype == 7)\n\n  #Converting to numeric values\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  #Selecting final variables\n  dataset <- select(dataset, topmed_subject_id, pselectin, age)\n\n  # Remove records with NAs from dataset.\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    }
+  ]
+}

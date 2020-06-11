@@ -1,0 +1,19 @@
+# Study accession: phs001986.v1.p1
+# Table accession: pht009927.v1.p1.c2
+# Consent group: Health/Medical/Biomedical
+# Citation instructions: The study accession (phs001986.v1.p1) is used to cite the study and its data tables and documents. The data in this file should be cited using the accession pht009927.v1.p1.c2.
+# To cite columns of data within this file, please use the variable (phv#) accessions below:
+#
+# 1) the table name and the variable (phv#) accessions below; or
+# 2) you may cite a variable as phv#.v1.p1.c2.
+
+##	phv00427219.v1.p1.c2	phv00427220.v1.p1.c2	phv00427221.v1.p1.c2	phv00427222.v1.p1.c2
+dbGaP_Sample_ID	SAMPLE_ID	BODY_SITE	ANALYTE_TYPE	IS_TUMOR
+3891789	g093	Blood	DNA	No
+3891772	g007	Blood	DNA	No
+3891778	g027	Blood	DNA	No
+3891771	g005	Blood	DNA	No
+3891773	g016	Blood	DNA	No
+3891790	g096	Blood	DNA	No
+3891774	g021	Blood	DNA	No
+3891781	g039	Blood	DNA	No

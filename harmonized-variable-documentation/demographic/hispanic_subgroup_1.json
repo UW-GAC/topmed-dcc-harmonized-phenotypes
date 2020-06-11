@@ -1,0 +1,88 @@
+{
+  "name": "hispanic_subgroup_1",
+  "phenotype_concept": "hispanic_subgroup",
+  "concept_variant": 1,
+  "description": "classification of Hispanic/Latino background for Hispanic/Latino subjects where country or region of origin information is available",
+  "version": 1,
+  "dcc_harmonization_id": 22,
+  "data_type": "encoded",
+  "measurement_units": null,
+  "has_age_variable": false,
+  "date_harmonized": "2017-08-02 13:25:16",
+  "dcc_harmonization_comments": "No additional summary information for this trait.\n",
+  "encoded_values": [
+    {
+      "code": "CentralAmerican",
+      "value": "Central American"
+    },
+    {
+      "code": "CostaRican",
+      "value": "from Costa Rica"
+    },
+    {
+      "code": "Cuban",
+      "value": "Cuban"
+    },
+    {
+      "code": "Dominican",
+      "value": "Dominican"
+    },
+    {
+      "code": "Mexican",
+      "value": "Mexican"
+    },
+    {
+      "code": "PuertoRican",
+      "value": "Puerto Rican"
+    },
+    {
+      "code": "SouthAmerican",
+      "value": "South American"
+    }
+  ],
+  "controlled_vocabulary": [
+    {
+      "source": "UMLS",
+      "version": "2018AB",
+      "id": "C0804625"
+    }
+  ],
+  "harmonization_units": [
+    {
+      "name": "CRA",
+      "component_study_variables": ["phs000988.v2.pht005248.v2.phv00258651.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n # harmonize hispanic subgroup CRA\n # phenotype file has \"race\", all values \"Hispanic\"\n    source_data <- phen_list$source_data\n\n    dat <- source_data[[\"pht005248\"]]\n\n   dat <- dat %>% filter(race %in% \"Hispanic\") %>%\n          mutate(hispanic_subgroup = \"CostaRican\") %>% select(topmed_subject_id, hispanic_subgroup) \n\n   return(dat)\n}\n"
+    },
+    {
+      "name": "HCHS_SOL",
+      "component_study_variables": ["phs000810.v1.pht004715.v1.phv00226254.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n    source_data <- phen_list$source_data\n    dat <- source_data[[\"pht004715\"]]\n \n  # All subjects are Hispanic/Latino\n\n   # 0=Dominican; 1=Central American; 2=Cuban; 3= Mexican; 4=Puerto-Rican; 5=South American; 6=More than one heritage/Other; Q = DK/Refused\n   \n   dat <- dat %>% filter(BKGRD1_C7 %in% 0:5)\n\n   rc <- c(\"Dominican\", \"CentralAmerican\", \"Cuban\", \"Mexican\", \"PuertoRican\", \"SouthAmerican\")\n   dat$hispanic_subgroup <- as.integer(dat$BKGRD1_C7) + 1\n   dat$hispanic_subgroup <- rc[dat$hispanic_subgroup]\n\n   dat <- dat %>%  \n        select(topmed_subject_id, hispanic_subgroup)\n   \n      return(dat)\n}\n"
+    },
+    {
+      "name": "MESA_AirNR",
+      "component_study_variables": ["phs000209.v13.pht001111.v4.phv00083215.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n # hispanic subgroup MESA AirNR\n\n #hctryo1c: CENTRAL AMERICA NOS, DOMINICAN REPUBLIC, MEXICO, OTHER NOS,           \n #           PUERTO RICO, SOUTH AMERICA NOS\n\n  source_data <- phen_list$source_data\n\n   # visit 1 data \n    dat <- source_data[[\"pht001111\"]] \n   \n  vro <- c(\"CENTRAL AMERICA NOS\", \"DOMINICAN REPUBLIC\", \"MEXICO\", \"PUERTO RICO\", \"SOUTH AMERICA NOS\")\n  vrn <- c(\"CentralAmerican\", \"Dominican\", \"Mexican\", \"PuertoRican\", \"SouthAmerican\") \n \n  dat$hispanic_subgroup <- NA\n  for (i in 1:length(vro)){\n     sel <- dat$hctryo1c %in% vro[i]\n     dat$hispanic_subgroup[sel] <- vrn[i]\n  }\n\n  dat <- dat %>% filter(!is.na(hispanic_subgroup)) %>% select(topmed_subject_id, hispanic_subgroup)\n\n  return(dat)\n}\n"
+    },
+    {
+      "name": "MESA_Classic",
+      "component_study_variables": ["phs000209.v13.pht001116.v10.phv00085543.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n # hispanic subgroup MESA Classic\n\n #hctryo1c: CENTRAL AMERICA NOS, DOMINICAN REPUBLIC, MEXICO, OTHER NOS,           \n #           PUERTO RICO, SOUTH AMERICA NOS, CARIBBEAN NOS, CUBA, NOT SPECIFIED\n\n  source_data <- phen_list$source_data\n\n   # visit 1 data \n    dat <- source_data[[\"pht001116\"]] \n   \n  vro <- c(\"CENTRAL AMERICA NOS\", \"DOMINICAN REPUBLIC\", \"MEXICO\", \"PUERTO RICO\", \"SOUTH AMERICA NOS\", \"CUBA\")\n  vrn <- c(\"CentralAmerican\", \"Dominican\", \"Mexican\", \"PuertoRican\", \"SouthAmerican\", \"Cuban\") \n\n  dat$hispanic_subgroup <- NA\n  for (i in 1:length(vro)){\n     sel <- dat$hctryo1c %in% vro[i]\n     dat$hispanic_subgroup[sel] <- vrn[i]\n  }\n\n  dat <- dat %>% filter(!is.na(hispanic_subgroup)) %>% select(topmed_subject_id, hispanic_subgroup)\n\n  return(dat)\n}\n"
+    },
+    {
+      "name": "MESA_Family",
+      "component_study_variables": ["phs000209.v13.pht001121.v3.phv00087228.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n # hispanic subgroup MESA Family\n\n #hctryofc: CENTRAL AMERICA NOS, DOMINICAN REPUBLIC, MEXICO, OTHER NOS,           \n #           PUERTO RICO, SOUTH AMERICA NOS, CUBA\n\n  source_data <- phen_list$source_data\n\n   # visit 1 data \n    dat <- source_data[[\"pht001121\"]] \n   \n  vro <- c(\"CENTRAL AMERICA NOS\", \"DOMINICAN REPUBLIC\", \"MEXICO\", \"PUERTO RICO\", \"SOUTH AMERICA NOS\", \"CUBA\")\n  vrn <- c(\"CentralAmerican\", \"Dominican\", \"Mexican\", \"PuertoRican\", \"SouthAmerican\", \"Cuban\") \n\n  dat$hispanic_subgroup <- NA\n  for (i in 1:length(vro)){\n     sel <- dat$hctryofc %in% vro[i]\n     dat$hispanic_subgroup[sel] <- vrn[i]\n  }\n\n  dat <- dat %>% filter(!is.na(hispanic_subgroup)) %>% select(topmed_subject_id, hispanic_subgroup)\n\n  return(dat)\n}\n"
+    },
+    {
+      "name": "WHI",
+      "component_study_variables": ["phs000200.v11.pht000998.v6.phv00078450.v6", "phs000200.v11.pht001009.v6.phv00079316.v6"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n# If Form 2 says \"hispanic\", and F41 has one of the main hispanic subcategories (puerto rican, mexican, cuban), that can be used.\n# Form 41 used for specificity - otherwise Form 2 takes precedence\n\n # harmonize hispanic subgroup for WHI\n    source_data <- phen_list$source_data\n\n  # Form 2 Hispanic is RACE = 4\n    dat1 <- source_data[[\"pht000998\"]]\n\n # variable SPANISH Form 41: 0 = not Hispanic, 1 = Puerto Rican, 2 = Mexican/MexicanAmerican, Chicano, 3 = Cuban, 4 = Other Hispanic\n   dat2 <- source_data[[\"pht001009\"]]\n   \n   dat <- inner_join(dat1, dat2)\n\n# choose Hispanics\n   dat <- dat %>% filter(RACE %in% 4 & SPANISH %in% 1:3)\n\n   dat$hispanic_subgroup[dat$SPANISH %in% 1] <- \"PuertoRican\"\n   dat$hispanic_subgroup[dat$SPANISH %in% 2] <- \"Mexican\"\n   dat$hispanic_subgroup[dat$SPANISH %in% 3] <- \"Cuban\"\n\n   dat <- dat %>% select(topmed_subject_id, hispanic_subgroup)\n\n  return(dat)\n}\n"
+    }
+  ]
+}

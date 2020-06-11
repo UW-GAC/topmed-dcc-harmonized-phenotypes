@@ -1,0 +1,131 @@
+{
+  "name": "height_baseline_1",
+  "phenotype_concept": "height_baseline",
+  "concept_variant": 1,
+  "description": "Body height at baseline.",
+  "version": 4,
+  "dcc_harmonization_id": 99,
+  "data_type": "decimal",
+  "measurement_units": "cm",
+  "has_age_variable": true,
+  "date_harmonized": "2018-08-23 15:36:23",
+  "dcc_harmonization_comments": "This variable was harmonized by converting component variables to the appropriate unit, as needed.\n\n#### HVH\n\nThere are multiple observations for many subjects in the HVH phenotype file. In\nthese instances, we used the earliest observation for harmonization. Although\nthis harmonized phenotype is designated as \"baseline\", the concept of\n\"baseline\" does not apply to HVH based on its study design. Consult the study\ndocumentation for more details (phs001013).\n",
+  "encoded_values": [],
+  "controlled_vocabulary": [
+    {
+      "source": "UMLS",
+      "version": "2018AB",
+      "id": "C0005890"
+    }
+  ],
+  "harmonization_units": [
+    {
+      "name": "Amish",
+      "component_study_variables": ["phs000956.v2.pht005002.v1.phv00252976.v1", "phs000956.v2.pht005002.v1.phv00252982.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n    dataset <- phen_list$source_data[[\"pht005002\"]] %>%\n        # Select and rename relevant traits\n        transmute(topmed_subject_id,\n            age = age_baseline,\n            height_baseline = as.numeric(height_baseline)) %>%\n        # Omit incomplete records\n        na.omit()\n    # Age is winsorized at 90, as an encoded value. Convert to integer:\n    dataset$age[dataset$age == \"90+\"] <- \"90\"\n    # Convert age to integer\n    dataset %<>% mutate(age = as.integer(age))\n    return(dataset)\n}\n"
+    },
+    {
+      "name": "ARIC",
+      "component_study_variables": ["phs000280.v4.pht004032.v2.phv00203151.v1", "phs000280.v4.pht004063.v2.phv00204712.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    dataset <- phen_list$source_data[[\"pht004032\"]] %>%\n        # Join datasets by topmed_subject_id\n        full_join(phen_list$source_data[[\"pht004063\"]], \"topmed_subject_id\") %>%\n        # Select and rename relevant variables\n        transmute(topmed_subject_id,\n            age = as.integer(V1AGE01),\n            # There is an encoded value 'A' in ANTA01 that is not present in\n            # the the data dictionary. It is coerced to NA here.\n            height_baseline = as.integer(na_if(ANTA01, \"A\"))) %>%\n        # Omit incomplete records\n        na.omit()\n\n    return(dataset)\n}\n"
+    },
+    {
+      "name": "CARDIA",
+      "component_study_variables": ["phs000285.v3.pht001559.v2.phv00112439.v2", "phs000285.v3.pht001583.v2.phv00113634.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  # Join all dataframes.\n  dat <- plyr::join_all(phen_list$source_data, \"topmed_subject_id\") %>%\n    # Rename and convert height and age to numeric.\n    transmute(topmed_subject_id, age = as.numeric(A01AGE2),\n              height_baseline = as.numeric(A20HGT)) %>%\n    # Exclude rows with missing data.\n    na.omit()\n  return(dat)\n}\n"
+    },
+    {
+      "name": "CFS",
+      "component_study_variables": ["phs000284.v1.pht001902.v1.phv00122012.v1", "phs000284.v1.pht001902.v1.phv00122015.v1", "phs000284.v1.pht001902.v1.phv00122640.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    source_data <- phen_list$source_data\n    source_data$pht001902 %>%\n        # Subset to baseline visit. Some respondents baseline is visit 5\n        filter(visit %in% c(\"1\", \"5\")) %>%\n        group_by(topmed_subject_id) %>%\n        arrange(topmed_subject_id, visit) %>%\n        filter(row_number(topmed_subject_id) == 1) %>%\n        ungroup() %>%\n        # Select, convert and rename relevant variables\n        transmute(topmed_subject_id,\n            # Convert age to integer\n            age = as.integer(age),\n            # Height in cm, converted to numeric\n            height_baseline = as.numeric(htcm)) %>%\n        # Omit incomplete records\n        na.omit() %>%\n        return()\n}\n"
+    },
+    {
+      "name": "CHS",
+      "component_study_variables": ["phs000287.v6.pht001452.v1.phv00100382.v1", "phs000287.v6.pht001452.v1.phv00100487.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    dataset <- phen_list$source_data[[\"pht001452\"]] %>%\n    # Select, rename and convert relevent variables\n    transmute(topmed_subject_id,\n        # Convert height to numeric\n        height_baseline = as.numeric(STHT13),\n        # Convert age to integer\n        age = as.integer(AGEBL)) %>%\n    # Exclude incomplete records\n    na.omit()\n    return(dataset)\n}\n"
+    },
+    {
+      "name": "COPDGene",
+      "component_study_variables": ["phs000179.v5.pht002239.v4.phv00159592.v4", "phs000179.v5.pht002239.v4.phv00159836.v4"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    phen_list$source_data$pht002239 %>%\n        # Select, rename and convert relevent variables\n        transmute(topmed_subject_id,\n            # Convert height and age to numeric\n            height_baseline = as.numeric(Height_CM),\n            age = as.numeric(Age_Enroll)) %>%\n        # Exclude incomplete records\n        na.omit() %>%\n        return()\n}\n"
+    },
+    {
+      "name": "CRA",
+      "component_study_variables": ["phs000988.v2.pht005248.v2.phv00258650.v2", "phs000988.v2.pht005248.v2.phv00267371.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    source_data <- phen_list$source_data\n    source_data$pht005248 %>%\n        # Select and rename relevant variables\n        transmute(topmed_subject_id, age, height_baseline = as.numeric(height)) %>%\n        # Exclude incomplete records\n        na.omit() %>%\n        return()\n}\n"
+    },
+    {
+      "name": "FHS_Omni1",
+      "component_study_variables": ["phs000007.v29.pht003099.v4.phv00177930.v4", "phs000007.v29.pht004813.v1.phv00250288.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  source_data <- phen_list$source_data\n  # Convert columns to numeric.\n  source_data <- lapply(source_data, function(x) mutate_if(x, is.character, as.numeric))\n  harmonized <- source_data$pht004813 %>%\n    # Convert height to cm.\n    transmute(topmed_subject_id, height_baseline = 2.54 * e025) %>%\n    # Join to dataset to age dataset.\n    inner_join(source_data[[\"pht003099\"]], by = \"topmed_subject_id\") %>%\n    # Convert age to integer.\n    mutate(age = as.integer(age1)) %>%\n    # Drop old age variable.\n    select(-age1) %>%\n    # Exclude incomplete records.\n    na.omit()\n  return(harmonized)\n}\n"
+    },
+    {
+      "name": "FHS_Original",
+      "component_study_variables": ["phs000007.v29.pht000009.v2.phv00000539.v1", "phs000007.v29.pht000009.v2.phv00000540.v1", "phs000007.v29.pht003099.v4.phv00177930.v4"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  source_data <- phen_list$source_data\n  # Convert variables to numeric.\n  source_data <- lapply(source_data, function(x) mutate_if(x, is.character, as.numeric))\n\n  harmonized <- source_data$pht000009 %>%\n    # Convert height to cm from inches and fractional inches.\n    transmute(topmed_subject_id, height_baseline = 2.54 * (MF67 + 0.01 * MF68)) %>%\n    # Join with age dataset.\n    inner_join(source_data[[\"pht003099\"]], by = \"topmed_subject_id\") %>%\n    # Convert age to integer.\n    mutate(age = as.integer(age1)) %>%\n    # Drop old age variable.\n    select(-age1) %>%\n    # Exclude incomplete records.\n    na.omit()\n  return(harmonized)\n}\n"
+    },
+    {
+      "name": "FHS_Workthru",
+      "component_study_variables": ["phs000007.v29.pht006026.v1.phv00277020.v1", "phs000007.v29.pht006026.v1.phv00277042.v1", "phs000007.v29.pht006027.v1.phv00277077.v1", "phs000007.v29.pht006027.v1.phv00277171.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    # Bind dataframes row-wise\n    bind_rows(phen_list$source_data) %>%\n        # Convert character variables to numeric\n        mutate_if(is.character, as.numeric) %>%\n        # Convert HGT1 to numeric\n        transmute(age = AGE1, height_baseline = HGT1 * 2.54,\n                  topmed_subject_id) %>%\n        # Exclude incomplete records\n        na.omit() %>%\n        return\n}\n"
+    },
+    {
+      "name": "GENOA",
+      "component_study_variables": ["phs001238.v1.pht006039.v1.phv00277507.v1", "phs001238.v1.pht006039.v1.phv00277514.v1", "phs001238.v1.pht006653.v1.phv00307788.v1", "phs001238.v1.pht006653.v1.phv00307795.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  # Row-bind African-American and European-American cohort datasets.\n  harmonized <- bind_rows(phen_list$source_data) %>%\n    # Convert character vectors to numeric.\n    mutate_if(is.character, as.numeric) %>%\n    # Rename age and height variables.\n    rename(age = AGE, height_baseline = HEIGHT) %>%\n    # Exclude rows with missing values.\n    na.omit()\n  return(harmonized)\n}\n"
+    },
+    {
+      "name": "HCHS_SOL",
+      "component_study_variables": ["phs000810.v1.pht004715.v1.phv00226251.v1", "phs000810.v1.pht004715.v1.phv00226281.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    phen_list$source_data$pht004715 %>%\n        # Rename variables; HEIGHT has been corrected. See dbGaP for documentation\n        rename(age = AGE, height_baseline = HEIGHT) %>%\n        # Convert variables to numeric\n        mutate_if(is.character, as.numeric) %>%\n        # Exclude incomplete records\n        na.omit() %>%\n        return()\n}\n"
+    },
+    {
+      "name": "HVH",
+      "component_study_variables": ["phs001013.v3.pht005311.v2.phv00259376.v2", "phs001013.v3.pht005311.v2.phv00259377.v2", "phs001013.v3.pht005311.v2.phv00259378.v2", "phs001013.v3.pht005311.v2.phv00259392.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  dat <- phen_list$source_data$pht005311 %>%\n    # Convert character variables to numeric.\n    mutate_if(is.character, as.numeric) %>%\n    group_by(topmed_subject_id) %>%\n    # Select only earliest observations for each participant.\n    filter(indexy == min(indexy))\n  # Create index of duplicated subject IDs.\n  dup_index <- duplicated(select(dat, topmed_subject_id))\n  # Create vector of duplicated subject IDs.\n  dups <- select(dat, topmed_subject_id)[dup_index, ]\n  # Filter out duplicated subject IDs.\n  dat <- filter(dat, !(topmed_subject_id %in% unlist(dups))) %>%\n    # Drop unnecessary variables.\n    select(-ccs, -indexy) %>%\n    # Exclude incomplete records.\n    na.omit() %>%\n    ungroup() %>%\n    # Select relevent variables\n    transmute(topmed_subject_id, age,\n              # Convert height in inches to cm\n              height_baseline = as.numeric(height) * 2.54)\n  return(dat)\n}\n"
+    },
+    {
+      "name": "JHS",
+      "component_study_variables": ["phs000286.v5.pht001940.v1.phv00125860.v1", "phs000286.v5.pht001949.v1.phv00126009.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    # Join datasets by topmed_subject_id\n    dataset <- full_join(phen_list$source_data[[\"pht001940\"]],\n            phen_list$source_data[[\"pht001949\"]],\n            by = \"topmed_subject_id\") %>%\n        # Select and rename relevant variables\n        select(topmed_subject_id,\n            height_baseline = antv1,\n            age = AGE01) %>%\n        # Convert variables to integer\n        mutate_if(is.character, as.integer) %>%\n        # exclude incomplete records\n        na.omit()\n    return(dataset)\n}\n"
+    },
+    {
+      "name": "Mayo_VTE",
+      "component_study_variables": ["phs000289.v2.pht001886.v2.phv00121846.v1", "phs000289.v2.pht001886.v2.phv00121872.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    phen_list$source_data$pht001886 %>%\n        # Rename variables\n        rename(age = enrollage, height_baseline = apptht_cms) %>%\n        # Convert variables to numeric\n        mutate_if(is.character, as.numeric) %>%\n        # Exclude incomplete records\n        na.omit() %>%\n        return()\n}\n"
+    },
+    {
+      "name": "MESA",
+      "component_study_variables": ["phs000209.v13.pht001111.v4.phv00082639.v2", "phs000209.v13.pht001111.v4.phv00082683.v1", "phs000209.v13.pht001116.v10.phv00084442.v3", "phs000209.v13.pht001116.v10.phv00084482.v2", "phs000209.v13.pht001121.v3.phv00087071.v1", "phs000209.v13.pht001121.v3.phv00087078.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    # Bind datasets rowwise\n    dataset <- rbind(phen_list$source_data[[\"pht001111\"]],\n            phen_list$source_data[[\"pht001116\"]]) %>%\n        # Rename variables\n        rename(age = age1c, height_baseline = htcm1) %>%\n        # Bind rowwise with remaining dataset\n        rbind(rename(phen_list$source_data[[\"pht001121\"]], age = agefc,\n            height_baseline = htcmf)) %>%\n        # convert height to numeric\n        mutate(height_baseline = as.numeric(height_baseline),\n            # convert age to integer\n            age = as.integer(age)) %>%\n        # Exclude incomplete records\n        na.omit()\n\n    return(dataset)\n}\n"
+    },
+    {
+      "name": "SAS",
+      "component_study_variables": ["phs000914.v1.pht005253.v1.phv00258680.v1", "phs000914.v1.pht005253.v1.phv00258683.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    phen_list$source_data[[\"pht005253\"]] %>%\n        # Select and transform relevent variables\n        transmute(topmed_subject_id,\n            # Convert age to numeric\n            age = as.numeric(Dec_Age),\n            # Convert height to numeric and encode \"NA\" as NA\n            height_baseline = as.numeric(na_if(Height, \"NA\"))) %>%\n        # Exclude incomplete records\n        na.omit() %>%\n        return()\n}\n"
+    },
+    {
+      "name": "WHI",
+      "component_study_variables": ["phs000200.v11.pht000998.v6.phv00078436.v6", "phs000200.v11.pht000998.v6.phv00078437.v6", "phs000200.v11.pht001019.v6.phv00079851.v6", "phs000200.v11.pht001019.v6.phv00079852.v6", "phs000200.v11.pht001019.v6.phv00079858.v6"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    dataset <- phen_list$source_data[[\"pht001019\"]] %>%\n        # Subset to baseline\n        filter(F80VY == \"0\") %>%\n        # Join datasets\n        inner_join(phen_list$source_data[[\"pht000998\"]],\n            by = \"topmed_subject_id\") %>%\n        mutate_at(vars(F2DAYS), funs(as.numeric))\n    # Values in F2DAYS above zero are likely errors. They are set to zero here\n    ind <- dataset$F2DAYS > 0\n    dataset$F2DAYS[ind] <- 0\n    # Select and rename relevent variables\n    transmute(dataset, topmed_subject_id,\n            # convert height to numeric\n            height_baseline = as.numeric(HEIGHTX),\n            # To calculate age at measurement, add baseline age, days since\n            # enrollment, and age since randomization\n            age = as.numeric(AGE) +\n                (as.numeric(F80DAYS) + abs(F2DAYS)) / 365.25) %>%\n        # Exclude incomplete results\n        na.omit() %>%\n        return()\n}\n"
+    }
+  ]
+}

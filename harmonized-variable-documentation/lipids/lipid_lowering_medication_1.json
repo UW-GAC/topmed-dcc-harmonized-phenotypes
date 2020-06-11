@@ -1,0 +1,92 @@
+{
+  "name": "lipid_lowering_medication_1",
+  "phenotype_concept": "lipid_lowering_medication",
+  "concept_variant": 1,
+  "description": "Indicates whether participant was taking any lipid-lowering medication at blood draw to measure lipids phenotypes",
+  "version": 3,
+  "dcc_harmonization_id": 127,
+  "data_type": "encoded",
+  "measurement_units": null,
+  "has_age_variable": true,
+  "date_harmonized": "2018-12-13 08:44:44",
+  "dcc_harmonization_comments": "This variable is not restricted to a single class of medications, and includes\nlipid lowering drugs like statins and fibrates.\n\n#### FHS\n\nDCC analysts could not confirm that data from the *_FHS_* Original cohort\navailable in dbGaP should be used for harmonization, and they are not included.\n\n#### SAS\n\nThere is no study variable to indicate whether a subject was taking\nlipid-lowering medication at the time of the lipids blood draw. Therefore, all\n*_SAS_* subjects have missing values for this harmonized variable.\n\n",
+  "encoded_values": [
+    {
+      "code": "0",
+      "value": "Participant was not taking lipid-lowering medication."
+    },
+    {
+      "code": "1",
+      "value": "Participant was taking lipid-lowering medication."
+    }
+  ],
+  "controlled_vocabulary": [
+    {
+      "source": "UMLS",
+      "version": "2019AA",
+      "id": "C2924556"
+    }
+  ],
+  "harmonization_units": [
+    {
+      "name": "Amish",
+      "component_study_variables": ["phs000956.v2.pht005002.v1.phv00252976.v1", "phs000956.v2.pht005002.v1.phv00253021.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Get dataset and rename variables.\n  dataset <- phen_list$source_data$pht005002 %>%\n    rename(age = age_baseline, lipid_lowering_medication = lipid_med_baseline)\n\n  # Substitute the winsorized age value of '90+' to a numeric value 90.\n  dataset$age[dataset$age %in% '90+'] <- 90\n\n  # Substitute the value of 'NA' to missing.\n  dataset$age[dataset$age %in% 'NA'] <- NA\n  dataset$lipid_lowering_medication[dataset$lipid_lowering_medication %in% 'NA'] <- NA\n\n  # Remove records with NAs from dataset.\n  dataset <- dataset[!is.na(dataset$age) & !is.na(dataset$lipid_lowering_medication), ]\n\n  # Convert character values to numeric.\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "ARIC",
+      "component_study_variables": ["phs000280.v4.pht004063.v2.phv00204712.v1", "phs000280.v4.pht004063.v2.phv00204802.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  library(magrittr)\n  dataset <- phen_list$source_data$pht004063 %>%\n    rename(age = V1AGE01, lipid_lowering_medication = CHOLMDCODE01)\n\n  # Convert \"T\" entry to NA. \"T\" is interpreted as \"forgot medications\" or \"missing data\"\n  dataset[which(dataset$lipid_lowering_medication == \"T\"), ]$lipid_lowering_medication <- NA\n\n  # Exclude missing records\n  dataset <- dataset[!is.na(dataset$age) & !is.na(dataset$lipid_lowering_medication), ]\n\n  # Convert character values to numeric\n  dataset %>% mutate_if(is.character, as.numeric) %>%\n    return()\n}\n"
+    },
+    {
+      "name": "CFS",
+      "component_study_variables": ["phs000284.v1.pht001902.v1.phv00122012.v1", "phs000284.v1.pht001902.v1.phv00122015.v1", "phs000284.v1.pht001902.v1.phv00123030.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  phen_list$source_data$pht001902 %>%\n    # Convert character vectors to numeric\n    mutate_if(is.character, as.numeric) %>%\n    # Subset to visit 5\n    filter(visit == 5) %>%\n    # Select only relevant variables\n    select(topmed_subject_id, age, lipid_lowering_medication = statins) %>%\n      return()\n\n}\n"
+    },
+    {
+      "name": "CHS",
+      "component_study_variables": ["phs000287.v6.pht001452.v1.phv00100487.v1", "phs000287.v6.pht001452.v1.phv00100594.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  dataset <- phen_list$source_data$pht001452 %>%\n    rename(age = AGEBL, lipid_lowering_medication = LIPID06)\n\n  # Remove records with NAs from dataset\n  dataset <- dataset[!is.na(dataset$age) & !is.na(dataset$lipid_lowering_medication), ]\n\n  # Convert character values to numeric and return\n  dataset %>% mutate_if(is.character, as.numeric) %>%\n    return()\n}\n"
+    },
+    {
+      "name": "FHS_Gen3_NewOffspringSpouse_Omni2",
+      "component_study_variables": ["phs000007.v29.pht006026.v1.phv00277020.v1", "phs000007.v29.pht006026.v1.phv00277061.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  dataset <- phen_list$source_data$pht006026 %>%\n    # Convert character vectors to numeric.\n    mutate_if(is.character, as.numeric) %>%\n    # Rename age and medication variables.\n    select(topmed_subject_id, age = AGE1, lipid_lowering_medication = LIPRX1) %>%\n    # Exclude rows with missing data.\n    na.omit()\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "FHS_Offspring",
+      "component_study_variables": ["phs000007.v29.pht006027.v1.phv00277077.v1", "phs000007.v29.pht006027.v1.phv00277254.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  dataset <- phen_list$source_data$pht006027 %>%\n    # Convert character vectors to numeric.\n    mutate_if(is.character, as.numeric) %>%\n    # Rename age and medication variables.\n    select(topmed_subject_id, age = AGE1, lipid_lowering_medication = LIPRX1) %>%\n    # Exclude rows with missing data.\n    na.omit()\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "GENOA",
+      "component_study_variables": ["phs001238.v1.pht006039.v1.phv00277507.v1", "phs001238.v1.pht006042.v1.phv00277586.v1", "phs001238.v1.pht006653.v1.phv00307788.v1", "phs001238.v1.pht006656.v1.phv00307867.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Get dataset.\n  source_data <- phen_list$source_data\n  data_aa <- inner_join(source_data$pht006039,\n                        source_data$pht006042,\n                        by = \"topmed_subject_id\")\n  data_ea <- inner_join(source_data$pht006653,\n                        source_data$pht006656,\n                        by = \"topmed_subject_id\")\n  dataset <- union(data_aa, data_ea)\n\n  # Rename variables.\n  dataset <- rename(dataset, age = AGE, lipid_lowering_medication = meds_LIPIDS)\n\n  # Encode the two-level factor values to binary values.\n  dataset <- mutate_if(dataset, is.factor, as.character)\n  dataset$lipid_lowering_medication[dataset$lipid_lowering_medication %in% 'NO'] <- 0\n  dataset$lipid_lowering_medication[dataset$lipid_lowering_medication %in% 'YES'] <- 1\n\n  # Convert character values to numeric.\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  # Remove records with NAs from dataset.\n  dataset <- dataset[!is.na(dataset$age) & !is.na(dataset$lipid_lowering_medication), ]\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "HCHS_SOL",
+      "component_study_variables": ["phs000810.v1.pht004715.v1.phv00226251.v1", "phs000810.v1.pht004715.v1.phv00226349.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  dat <- phen_list$source_data$ pht004715 %>%\n    # Convert to numeric/rename variables.\n    transmute(topmed_subject_id, age = as.numeric(AGE),\n              lipid_lowering_medication = as.numeric(MED_LLD)) %>%\n    # Exclude rows with missing data.\n    na.omit()\n  return(dat)\n}\n"
+    },
+    {
+      "name": "JHS",
+      "component_study_variables": ["phs000286.v5.pht001949.v1.phv00126009.v1", "phs000286.v5.pht001949.v1.phv00126053.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Get dataset and rename variables.\n  dataset <- phen_list$source_data$pht001949 %>%\n    rename(age = AGE01, lipid_lowering_medication = LPM01)\n\n  # Substitute the value of 'X' to missing.\n  dataset$lipid_lowering_medication[dataset$lipid_lowering_medication %in% 'X'] <- NA\n\n  # Remove records with NAs from dataset.\n  dataset <- dataset[!is.na(dataset$age) & !is.na(dataset$lipid_lowering_medication), ]\n\n  # Convert character values to numeric.\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "MESA",
+      "component_study_variables": ["phs000209.v13.pht001111.v4.phv00082639.v2", "phs000209.v13.pht001111.v4.phv00083162.v1", "phs000209.v13.pht001116.v10.phv00084442.v3", "phs000209.v13.pht001116.v10.phv00085407.v2", "phs000209.v13.pht001121.v3.phv00087071.v1", "phs000209.v13.pht001121.v3.phv00087104.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Get list of dataframes.\n  source_data <- phen_list$source_data\n  # Rename variables in the family exam to match variables in the other dataframes.\n  source_data$pht001121 <- rename(source_data$pht001121, lipid1c = lipidfc,\n                                  age1c = agefc)\n  # Bind datasets row-wise.\n  dat <- bind_rows(source_data) %>%\n    # Rename treatment and age variables, and convert to numeric.\n    transmute(topmed_subject_id, lipid_lowering_medication = as.numeric(lipid1c),\n              age = as.numeric(age1c)) %>%\n    na.omit()\n\n  return(dat)\n}\n"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "name": "tnfa_1",
+  "phenotype_concept": "tnfa",
+  "concept_variant": 1,
+  "description": "Tumor necrosis factor alpha (TNFa) concentration in blood.",
+  "version": 1,
+  "dcc_harmonization_id": 144,
+  "data_type": "decimal",
+  "measurement_units": "pg / mL",
+  "has_age_variable": true,
+  "date_harmonized": "2019-04-15 15:54:39",
+  "dcc_harmonization_comments": "This variable was harmonized by converting the component study variables to the appropriate unit of measure as needed and, when possible, accounting for measurements outside an assay's limits of detection (LOD). If the information was available, measurements below the lower limit of detection (LLOD) were set to the LLOD and measurements above the upper limit of detection (ULOD) were set to the ULOD unless otherwise indicated in the study-specific sections below. Some studies identified subjects with measurements outside the LOD; see table below for more details. The assay(s) used to measure TNFa concentration from serum or plasma differed by study and/or subcohort.\n\n#### CFS\n\nThe study identified values with low concentrations that had been extrapolated outside the assay range. These extrapolated values were set to the LLOD.\n\n#### FHS\n\nThe *_FHS_* Original, New Offspring Spouse, Generation 3, Omni 1, and Omni 2 Cohorts are not included in this harmonized phenotype at this time.\n\n#### MESA\n\nMeasurements indicated as low or high were set to 0.16 pg/mL or 12.0 pg/mL, respectively, based on encoded values in the indicator variable (phv00160541). These values differed from the detection limits of the assay.\n\nThe *_MESA_* Family and AirNR Cohorts are not included in this harmonized phenotype at this time.\n\n#### Exam visit for TNFa measurements\n\n| Study or subcohort | Visit |\n|---------|----------|\n| CFS | Visit 5 |\n| FHS_Offspring | Exam 7 |\n| MESA_Classic | Exam 2 or 3^1^ |\n\n1. TNFa was measured for an ancillary study that included randomly selected MESA Classic subjects during exams 2 and 3. No subjects were selected more than once in the ancillary study.\n\n#### Assay and limits of detection for TNFa measurements\n\n| Study or subcohort | Assay | LLOD | ULOD | Differentiated^1^ |\n|---------|----------|---------|---------|---------|\n| CFS | Human Serum Adipokine Panel B | 0.06 pg/mL |  NA  | Yes |\n| | LINCOplex Kit | | | |\n| FHS_Offspring | ELISA | 0.06-0.32 pg/mL |  NA  | No |\n| MESA_Classic | Millipore Panel B, Luminex | 0.13 pg/mL | 10000 pg/mL | Yes |\n\n1. The study included information indicating which measurements were below or above the limit of detection. If \"Yes\", measurements outside the LOD can be identified using component study or subcohort variables.\n\n#### Specimen type for TNFa measurements\n\nTable includes studies or subcohorts with known specimen types only.\n\n| Study or subcohort | Specimen |\n|---------|----------|\n| CFS | Serum |\n| FHS | Plasma |\n| MESA | Serum |\n",
+  "encoded_values": [],
+  "controlled_vocabulary": [
+    {
+      "source": "UMLS",
+      "version": "2018AB",
+      "id": "C1168005"
+    }
+  ],
+  "harmonization_units": [
+    {
+      "name": "CFS",
+      "component_study_variables": ["phs000284.v1.pht001902.v1.phv00122012.v1", "phs000284.v1.pht001902.v1.phv00122015.v1", "phs000284.v1.pht001902.v1.phv00124076.v1", "phs000284.v1.pht001902.v1.phv00124079.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  #Data\n  dataset <- phen_list$source_data$pht001902 %>%\n             rename(tnfa = tnfaam, tnfa_comment = tnfaam_comment)\n\n  #Subset to visit 5\n  dataset <- subset(dataset, visit == 5)\n\n  #Converting age and tnfa to numeric\n  dataset$tnfa[dataset$tnfa %in% 'NA'] <- NA\n  dataset <- mutate(dataset, tnfa = as.numeric(tnfa), age = as.numeric(age))\n\n  #Chaning extrapolated values to LLOD\n  dataset$tnfa[dataset$tnfa_comment %in% 'extrapolated'] <- 0.06\n\n  #Selecting final varaibles and removing missing\n  dataset <- select(dataset, topmed_subject_id, tnfa, age)\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "FHS",
+      "component_study_variables": ["phs000007.v29.pht000111.v5.phv00022779.v4", "phs000007.v29.pht003099.v4.phv00177942.v4"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Get dataset and rename variables\n  dataset <- left_join(phen_list$source_data$pht000111,\n                       phen_list$source_data$pht003099,\n                       by = 'topmed_subject_id') %>%\n             rename(tnfa = tnf7, age = age7)\n\n  # Convert character values to numeric\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  # Remove records with NAs from dataset.\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "MESA",
+      "component_study_variables": ["phs000209.v13.pht001118.v8.phv00085773.v3", "phs000209.v13.pht001119.v8.phv00086259.v4", "phs000209.v13.pht002198.v2.phv00160529.v1", "phs000209.v13.pht002198.v2.phv00160540.v1", "phs000209.v13.pht002198.v2.phv00160541.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Get dataset and rename variables\n  dataset <- left_join(phen_list$source_data$pht002198,\n                       phen_list$source_data$pht001118,\n                       by = 'topmed_subject_id')\n  dataset <- left_join(dataset,\n             phen_list$source_data$pht001119,\n             by = 'topmed_subject_id') %>%\n             rename(tnfa = tnfa3,\n                    tnfa_m = tnfa3m,\n                    exam = exam3,\n                    age2 = age2c,\n                    age3 = age3c)\n\n  #Selecting correct age for visit\n  dataset$age <- ifelse(dataset$exam == 2, dataset$age2, dataset$age3)\n\n  # Substitute the value of 'NA' to missing\n  dataset$tnfa[dataset$tnfa %in% 'NA'] <- NA\n  dataset$tnfa_m[dataset$tnfa_m %in% 'NA'] <- NA\n  dataset$age[dataset$age %in% 'NA'] <- NA\n\n  # Convert character values to numeric\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  #Assign values to tnfa_m = -333 or tnfa_m = -555\n  dataset$tnfa[dataset$tnfa_m == -333] <- 0.16\n  dataset$tnfa[dataset$tnfa_m == -555] <- 12.0\n\n  # Select final variables\n  dataset <- select(dataset, tnfa, age, topmed_subject_id)\n\n  # Remove records with NAs from dataset\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    }
+  ]
+}

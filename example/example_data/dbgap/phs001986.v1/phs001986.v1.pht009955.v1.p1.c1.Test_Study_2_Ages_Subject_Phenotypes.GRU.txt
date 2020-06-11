@@ -1,0 +1,23 @@
+# Study accession: phs001986.v1.p1
+# Table accession: pht009955.v1.p1.c1
+# Consent group: General Research Use
+# Citation instructions: The study accession (phs001986.v1.p1) is used to cite the study and its data tables and documents. The data in this file should be cited using the accession pht009955.v1.p1.c1.
+# To cite columns of data within this file, please use the variable (phv#) accessions below:
+#
+# 1) the table name and the variable (phv#) accessions below; or
+# 2) you may cite a variable as phv#.v1.p1.c1.
+
+##	phv00427372.v1.p1.c1	phv00427373.v1.p1.c1
+dbGaP_Subject_ID	SUBJECT_ID	age
+3243288	s0463	31
+3243281	s0179	27
+3243289	s0526	47
+3243282	s0195	39
+3243280	s0118	34
+3243283	s0229	34
+3243278	s0014	36
+3243290	s0602	59
+3243291	s0603	54
+3243294	s0768	39
+3243293	s0709	48
+3243297	s0953	31

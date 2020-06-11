@@ -1,0 +1,110 @@
+{
+  "name": "fasting_lipids_1",
+  "phenotype_concept": "fasting_lipids",
+  "concept_variant": 1,
+  "description": "Indicates whether participant fasted for at least eight hours prior to blood draw to measure lipids phenotypes.",
+  "version": 3,
+  "dcc_harmonization_id": 122,
+  "data_type": "encoded",
+  "measurement_units": null,
+  "has_age_variable": true,
+  "date_harmonized": "2018-12-12 15:39:19",
+  "dcc_harmonization_comments": "This variable was harmonized by converting fasting time in hours to a binary\nindicator as needed; or in the cases where all participants fasted prior to the\nblood draw at which lipids were measured, this variable was set to true for all\nparticipants.\n\nExceptions to the eight-hour cutoff are the *_CARDIA_*, *_FHS_* Offspring cohort, *_GENOA_*\nand *_SAS_*. Subjects in *_CARDIA_* and the *_FHS_* Offspring cohort were asked to fast for\n_12 hours_ or more. Subjects in the studies *_GENOA_* and *_SAS_* were asked to\nfast for _10 hours_ or more and greater resolution is not available.\n\nSubjects in\n[*_ARIC_*](https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/document.cgi?study_id=phs000280.v3.p1&phv=182563&phd=4496&pha=&pht=4235&phvf=&phdf=387&phaf=&phtf=494&dssp=1&consent=&temp=1#sec9), *_CHS_* and *_HCHS/SOL_* were asked to fast for 12 hours prior to the blood draw. However,\nthere are study variables available from all three studies that indicate\nspecifically how long the subject fasted for. These variables were used for\nharmonization.\n\n#### FHS\n\nDCC analysts could not confirm that data from the *_FHS_* Original cohort\navailable in dbGaP should be used for harmonization, and they are not included.\n\n",
+  "encoded_values": [
+    {
+      "code": "0",
+      "value": "Participant did not fast, or fasted for fewer than eight hours prior to measurement of lipids phenotypes."
+    },
+    {
+      "code": "1",
+      "value": "Participant fasted for at least eight hours prior to measurement of lipids phenotypes."
+    }
+  ],
+  "controlled_vocabulary": [
+    {
+      "source": "UMLS",
+      "version": "2019AA",
+      "id": "C1976106"
+    }
+  ],
+  "harmonization_units": [
+    {
+      "name": "Amish",
+      "component_study_variables": ["phs000956.v2.pht005002.v1.phv00252976.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Get dataset and rename variables.\n  dataset <- phen_list$source_data$pht005002 %>%\n    rename(age = age_baseline)\n\n  # Substitute the winsorized age value of '90+' to a numeric value 90.\n  dataset$age[dataset$age %in% '90+'] <- 90\n\n  # Substitute the value of 'NA' to missing.\n  dataset$age[dataset$age %in% 'NA'] <- NA\n\n  # Remove records with NAs from dataset.\n  dataset <- dataset[!is.na(dataset$age), ]\n\n  # Convert character values to numeric.\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  # Create fasting status for all subjects, since all subjects have fasted.\n  dataset <- transmute(dataset, topmed_subject_id, age, fasting_lipids = \"1\")\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "ARIC",
+      "component_study_variables": ["phs000280.v4.pht004063.v2.phv00204712.v1", "phs000280.v4.pht004063.v2.phv00204732.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  dataset <- phen_list$source_data$pht004063 %>%\n    rename(age = V1AGE01, fasting_lipids = FAST0802) %>%\n    mutate_at(vars(age), funs(as.numeric))\n\n  # Encoded value \"T\" is NA\n  dataset[which(dataset$fasting_lipids == \"T\"), ]$fasting_lipids <- NA\n\n  # Exclude rows with missing data\n  dataset <- dataset[!is.na(dataset$age) & !is.na(dataset$fasting_lipids), ]\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "CARDIA",
+      "component_study_variables": ["phs000285.v3.pht001559.v2.phv00112439.v2", "phs000285.v3.pht001563.v2.phv00112661.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  source_data <- phen_list$source_data\n  # Join fasting data with age data.\n  dat <- full_join(source_data$pht001559, source_data$pht001563, \"topmed_subject_id\") %>%\n    # Rename variables and convert to numeric.\n    transmute(topmed_subject_id, age = as.numeric(A01AGE2), fasting_lipids = A05FAST)\n\n  # Recode fasting_lipids.\n  dat$fasting_lipids[dat$fasting_lipids == \"YES\"] <- \"1\"\n  dat$fasting_lipids[dat$fasting_lipids == \"NO\"] <- \"0\"\n  # Exclude rows with missing data.\n  dat <- na.omit(dat)\n  return(dat)\n}\n"
+    },
+    {
+      "name": "CFS",
+      "component_study_variables": ["phs000284.v1.pht001902.v1.phv00122012.v1", "phs000284.v1.pht001902.v1.phv00122015.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  phen_list$source_data$pht001902 %>%\n    # Convert character vectors to numeric\n    mutate_if(is.character, as.numeric) %>%\n    # Subset to visit 5\n    filter(visit == 5) %>%\n    # Select only relevant variables\n    transmute(topmed_subject_id, age, fasting_lipids = \"1\") %>%\n    return()\n}\n"
+    },
+    {
+      "name": "CHS",
+      "component_study_variables": ["phs000287.v6.pht001451.v1.phv00099923.v1", "phs000287.v6.pht001452.v1.phv00100487.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  source_data <- phen_list$source_data\n\n  # Join age dataset and fasting dataset\n  inner_join(source_data$pht001451, source_data$pht001452) %>%\n    # Convert AGEBL and FAST30 to numeric\n    mutate_at(vars(AGEBL, FAST30), funs(as.numeric)) %>%\n    # Select ID, rename age\n    transmute(topmed_subject_id, age = AGEBL,\n              # Create binary fasting indicator\n              fasting_lipids = as.character(as.integer(FAST30 >= 8))) %>%\n    # Exclude records with NAs\n    na.omit() %>%\n    return()\n}\n"
+    },
+    {
+      "name": "FHS_Gen3",
+      "component_study_variables": ["phs000007.v29.pht000074.v10.phv00021237.v4", "phs000007.v29.pht006026.v1.phv00277020.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  source_data <- phen_list$source_data\n  # Join fasting dataset with age dataset.\n  dataset <- plyr::join_all(source_data) %>%\n    # Convert AGE1 and G3A453 to numeric.\n    mutate_at(vars(AGE1, G3A453), funs(as.numeric)) %>%\n    # Select ID, rename age.\n    transmute(topmed_subject_id, age = AGE1,\n              # Create binary fasting indicator\n              fasting_lipids = as.character(as.integer(G3A453 >= 8)))\n\n  # Exclude records with NAs.\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "FHS_NewOffspringSpouse_Omni2",
+      "component_study_variables": ["phs000007.v29.pht005143.v1.phv00255347.v1", "phs000007.v29.pht006026.v1.phv00277020.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  source_data <- phen_list$source_data\n  # Join fasting dataset with age dataset.\n  dataset <- plyr::join_all(source_data) %>%\n    # Convert AGE1 to numeric.\n    mutate_at(vars(AGE1), funs(as.numeric)) %>%\n    # Select ID, rename age and fasting.\n    transmute(topmed_subject_id, age = AGE1, fasting_lipids = FASTING)\n\n  # Exclude records with NAs.\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "FHS_Offspring",
+      "component_study_variables": ["phs000007.v29.pht000030.v7.phv00007550.v5", "phs000007.v29.pht006027.v1.phv00277077.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  source_data <- phen_list$source_data\n\n  # Join fasting dataset with age dataset.\n  dataset <- plyr::join_all(source_data, by = \"topmed_subject_id\") %>%\n    # Convert AGE1 to numeric.\n    mutate_at(vars(AGE1), funs(as.numeric)) %>%\n    # Select ID, rename age and fasting status.\n    transmute(topmed_subject_id, age = AGE1, fasting_lipids = A23)\n\n  # Exclude records with NAs.\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "GENOA",
+      "component_study_variables": ["phs001238.v1.pht006039.v1.phv00277507.v1", "phs001238.v1.pht006041.v1.phv00277572.v1", "phs001238.v1.pht006653.v1.phv00307788.v1", "phs001238.v1.pht006655.v1.phv00307853.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Get dataset.\n  source_data <- phen_list$source_data\n  data_aa <- inner_join(source_data$pht006039,\n                        source_data$pht006041,\n                        by = \"topmed_subject_id\")\n  data_ea <- inner_join(source_data$pht006653,\n                        source_data$pht006655,\n                        by = \"topmed_subject_id\")\n  dataset <- union(data_aa, data_ea)\n\n  # Rename variables.\n  dataset <- rename(dataset, age = AGE, fasting_lipids = FAST10HR)\n\n  # Encode the two-level factor values to binary values.\n  dataset <- mutate_if(dataset, is.factor, as.character)\n  dataset$fasting_lipids[dataset$fasting_lipids %in% 'No'] <- 0\n  dataset$fasting_lipids[dataset$fasting_lipids %in% 'Yes'] <- 1\n\n  # Remove records with NAs from dataset.\n  dataset <- dataset[!is.na(dataset$age) & !is.na(dataset$fasting_lipids), ]\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "HCHS_SOL",
+      "component_study_variables": ["phs000810.v1.pht004715.v1.phv00226251.v1", "phs000810.v1.pht004715.v1.phv00253225.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  dat <- phen_list$source_data$pht004715 %>%\n    # Convert character vectors to numeric.\n    mutate_if(is.character, as.numeric) %>%\n    # Rename variables and create binary fasting variable.\n    transmute(topmed_subject_id, age = AGE,\n              fasting_lipids = as.character(as.numeric(FASTTIME >= 8))) %>%\n    # Exclude rows with missing data.\n    na.omit()\n  return(dat)\n}\n"
+    },
+    {
+      "name": "JHS",
+      "component_study_variables": ["phs000286.v5.pht001949.v1.phv00126009.v1", "phs000286.v5.pht001949.v1.phv00126044.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Get dataset and rename variables.\n  dataset <- phen_list$source_data$pht001949 %>%\n    rename(age = AGE01, fasting_lipids = LPF01)\n\n  # Substitute the value of 'NA' to missing.\n  dataset$fasting_lipids[dataset$fasting_lipids %in% 'NA'] <- NA\n\n  # Remove records with NAs from dataset.\n  dataset <- dataset[!is.na(dataset$age) & !is.na(dataset$fasting_lipids), ]\n\n  # Convert character values to numeric.\n  dataset <- mutate(dataset, age = as.numeric(age))\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "MESA",
+      "component_study_variables": ["phs000209.v13.pht001111.v4.phv00082639.v2", "phs000209.v13.pht001111.v4.phv00083303.v1", "phs000209.v13.pht001116.v10.phv00084442.v3", "phs000209.v13.pht001116.v10.phv00084980.v2", "phs000209.v13.pht001121.v3.phv00087071.v1", "phs000209.v13.pht001121.v3.phv00087524.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Get list of dataframes.\n  source_data <- phen_list$source_data\n  # Rename variables in the family exam to match variables in the other dataframes.\n  source_data$pht001121 <- rename(source_data$pht001121, age1c = agefc,\n                                  lastdrk1 = lastdrkf)\n\n  # Bind datasets row-wise.\n  dat <- bind_rows(source_data) %>%\n    # Rename fasting and age variables. Convert age to numeric and fasting to binary.\n    transmute(topmed_subject_id,\n              fasting_lipids = as.character(as.numeric(as.numeric(lastdrk1) >= 8)),\n              age = as.numeric(age1c)) %>%\n    # Exclude rows with missing data.\n    na.omit()\n\n  return(dat)\n}\n"
+    },
+    {
+      "name": "SAS",
+      "component_study_variables": ["phs000914.v1.pht005253.v1.phv00258680.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  library(magrittr)\n  dataset <- phen_list$source_data$pht005253 %>%\n    # Select/rename variables, convert age to numeric, set fasting to true\n    # for all subjects.\n    transmute(topmed_subject_id, age = as.numeric(Dec_Age),\n              fasting_lipids = \"1\") %>%\n    # Exclude incomplete rows.\n    na.omit()\n  return(dataset)\n}\n"
+    }
+  ]
+}

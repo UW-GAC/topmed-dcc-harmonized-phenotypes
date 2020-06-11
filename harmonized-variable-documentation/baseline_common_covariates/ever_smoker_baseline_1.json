@@ -1,0 +1,128 @@
+{
+  "name": "ever_smoker_baseline_1",
+  "phenotype_concept": "ever_smoker_baseline",
+  "concept_variant": 1,
+  "description": "Indicates whether subject ever regularly smoked cigarettes.",
+  "version": 3,
+  "dcc_harmonization_id": 101,
+  "data_type": "encoded",
+  "measurement_units": null,
+  "has_age_variable": true,
+  "date_harmonized": "2018-08-23 16:21:35",
+  "dcc_harmonization_comments": "When available, we used component variables from smoking history questionnaires\nto harmonize this trait, rather than derived variables, to promote\nreproducibility and for handling inconsistencies.  In the case of contradictory\ninformation, as a general approach, any positive indication that a subject\nsmoked regularly will cause them to be coded as an \"ever smoker\" (e.g. they\nrespond that they have never smoked, but _smoked a positive number of\ncigarettes per day_ when they did smoke).\n\n#### HVH\n\nThere are multiple observations for many subjects in the HVH phenotype file. In\nthese instances, we used the earliest observation for harmonization. Although\nthis harmonized phenotype is designated as \"baseline\", the concept of\n\"baseline\" does not apply to HVH based on its study design. Consult the study\ndocumentation for more details (phs001013).\n",
+  "encoded_values": [
+    {
+      "code": "0",
+      "value": "Never a cigarette smoker"
+    },
+    {
+      "code": "1",
+      "value": "Current or former cigarette smoker"
+    }
+  ],
+  "controlled_vocabulary": [
+    {
+      "source": "UMLS",
+      "version": "2018AB",
+      "id": "C1519384"
+    }
+  ],
+  "harmonization_units": [
+    {
+      "name": "ARIC",
+      "component_study_variables": ["phs000280.v4.pht004063.v2.phv00204712.v1", "phs000280.v4.pht004111.v2.phv00207368.v1", "phs000280.v4.pht004111.v2.phv00207369.v1", "phs000280.v4.pht004111.v2.phv00207370.v1", "phs000280.v4.pht004111.v2.phv00207375.v1", "phs000280.v4.pht004111.v2.phv00207376.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    source_data <- phen_list$source_data\n    source_data$pht004111 %>%\n    # Code \"A\" and NA as 0 in HOM29 and HOM35\n        mutate(HOM29 = as.numeric(ifelse(is.na(HOM29) | HOM29 == \"A\", 0, HOM29)),\n        HOM35 = as.numeric(ifelse(is.na(HOM35) | HOM35 == \"A\", 0, HOM35)),\n        # Convert HOM36 to TRUE/FALSE\n        HOM36 = !is.na(HOM36),\n            # Code ever_smoker_baseline as 0 if HOM28 is N\n        ever_smoker_baseline = ifelse(HOM28 == \"N\", 0,\n                # Code ever_smoker_baseline as 1 if HOM28 or HOM30 are Y, else code as NA\n                ifelse(HOM28 == \"Y\" | HOM30 == \"Y\", 1, NA)),\n                ever_smoker_baseline = as.numeric(as.logical(\n                    ever_smoker_baseline + HOM29 + HOM35 + HOM36\n                ))) %>%\n        select(topmed_subject_id, ever_smoker_baseline) %>%\n        # Join with age dataset on topmed_subject_id\n        left_join(source_data$pht004063, \"topmed_subject_id\") %>%\n        # Exclude incomplete records\n        na.omit() %>%\n        rename(age = V1AGE01) %>%\n        return()\n}\n"
+    },
+    {
+      "name": "CARDIA",
+      "component_study_variables": ["phs000285.v3.pht001559.v2.phv00112439.v2", "phs000285.v3.pht001573.v2.phv00113213.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  source_data <- phen_list$source_data\n  # Create dataframe for harmonized phenotype.\n  dat <- source_data$pht001573\n  # Create empty vector for harmonized variable.\n  dat$ever_smoker_baseline <- NA\n  # Recode \"2\" to \"1\"\n  dat$ever_smoker_baseline[dat$A10CIGS == \"2\"] <- 1L\n  # Recode \"1\" to \"0\"\n  dat$ever_smoker_baseline[dat$A10CIGS == \"1\"] <- 0L\n  # Join smoking data with age variable.\n  dat <- inner_join(dat, source_data$pht001559, \"topmed_subject_id\") %>%\n    # Rename and convert age to numeric.\n    transmute(topmed_subject_id, ever_smoker_baseline, age = as.numeric(A01AGE2)) %>%\n    # Exclude rows with missing data.\n    na.omit()\n  return(dat)\n}\n"
+    },
+    {
+      "name": "CFS",
+      "component_study_variables": ["phs000284.v1.pht001902.v1.phv00122012.v1", "phs000284.v1.pht001902.v1.phv00122015.v1", "phs000284.v1.pht001902.v1.phv00122340.v1", "phs000284.v1.pht001902.v1.phv00122341.v1", "phs000284.v1.pht001902.v1.phv00122342.v1", "phs000284.v1.pht001902.v1.phv00122343.v1", "phs000284.v1.pht001902.v1.phv00122344.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    df <- phen_list$source_data$pht001902 %>%\n        # Subset to baseline visit. Some respondents baseline is visit 5\n        filter(visit %in% c(\"1\", \"5\")) %>%\n        group_by(topmed_subject_id) %>%\n        arrange(topmed_subject_id, visit) %>%\n        filter(row_number(topmed_subject_id) == 1) %>%\n        ungroup() %>%\n        # Convert variables to numeric\n        mutate_if(is.character, as.numeric) %>%\n        # Recode encoded values and NA as 0\n        mutate(AGESMOK = ifelse(AGESMOK %in% c(-1, -2, NA), 0, AGESMOK),\n            AVGSMOK = ifelse(AVGSMOK %in% c(-1, -2, NA), 0, AVGSMOK),\n            MONSMOKE = ifelse(MONSMOKE %in% c(-1, NA), 0, MONSMOKE),\n            NOWSMOKE = ifelse(NOWSMOKE %in% c(-1, NA), 0, NOWSMOKE),\n            # code ever_smoker_baseline as 1 if any smoking variables are positive\n            ever_smoker_baseline = as.numeric(as.logical(\n                SMOKED + AGESMOK + AVGSMOK + MONSMOKE + NOWSMOKE\n            ))) %>%\n        # Select only ID, age and phenotype\n        select(topmed_subject_id, age, ever_smoker_baseline) %>%\n        # Exclude incomplete records\n        na.omit() %>%\n        return()\n}\n"
+    },
+    {
+      "name": "CHS",
+      "component_study_variables": ["phs000287.v6.pht001450.v1.phv00098844.v1", "phs000287.v6.pht001450.v1.phv00098845.v1", "phs000287.v6.pht001450.v1.phv00099157.v1", "phs000287.v6.pht001450.v1.phv00099159.v1", "phs000287.v6.pht001452.v1.phv00100487.v1", "phs000287.v6.pht001490.v1.phv00105143.v1", "phs000287.v6.pht001490.v1.phv00105144.v1", "phs000287.v6.pht001490.v1.phv00106198.v1", "phs000287.v6.pht001490.v1.phv00106200.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n    source_data <- phen_list$source_data\n\n    smk <- source_data[c(\"pht001450\", \"pht001490\")] %>%\n        # Standardize column order\n        lapply(select, topmed_subject_id, SMOKE101, SMOKE201,\n               starts_with(\"SMKAGE\"), starts_with(\"AMOUNT\")) %>%\n        # Standardize column names\n        lapply(setNames, c(\"topmed_subject_id\", \"SMOKE101\", \"SMOKE201\",\n                           \"SMKAGE\", \"AMOUNT\")) %>%\n        # pht001450 and pht001490 have empty rows for members of the new and\n        # original cohorts, respectively. They are excluded here\n        lapply(filter, !(is.na(SMOKE101) & is.na(SMOKE201) & is.na(SMKAGE) &\n                         is.na(AMOUNT)))\n    # NA is coded as \"9\" in SMKAGE\n    smk$pht001490$SMKAGE[smk$pht001490$SMKAGE == \"9\"] <- NA\n        # Bind datasets row-wise\n    smk %<>% bind_rows() %>%\n        # Join with remaining dataset\n        full_join(source_data$pht001452, \"topmed_subject_id\") %>%\n        # Convert character variables to numeric\n        mutate_if(is.character, as.numeric)\n\n    # Code ever_smoker_baseline as TRUE if ANY variables are true\n    ever_smoker_baseline <- smk %>% select(SMOKE101, SMOKE201, AMOUNT, SMKAGE) %>%\n        rowSums(na.rm = TRUE) %>%\n        as.logical()\n\n    smk %>% mutate(ever_smoker_baseline = as.integer(ever_smoker_baseline)) %>%\n        # exclude if SMOKE101 is NA and ever_smoker_baseline is FALSE\n        filter(!(is.na(SMOKE101) & !ever_smoker_baseline)) %>%\n        select(topmed_subject_id, age = AGEBL, ever_smoker_baseline) %>%\n        # Exclude incomplete records\n        na.omit() %>%\n        return()\n}\n"
+    },
+    {
+      "name": "COPDGene",
+      "component_study_variables": ["phs000179.v5.pht002239.v4.phv00159636.v4", "phs000179.v5.pht002239.v4.phv00159637.v4", "phs000179.v5.pht002239.v4.phv00159638.v4", "phs000179.v5.pht002239.v4.phv00159639.v4", "phs000179.v5.pht002239.v4.phv00159640.v4", "phs000179.v5.pht002239.v4.phv00159641.v4", "phs000179.v5.pht002239.v4.phv00159747.v4", "phs000179.v5.pht002239.v4.phv00159748.v4", "phs000179.v5.pht002239.v4.phv00159749.v4", "phs000179.v5.pht002239.v4.phv00159750.v4", "phs000179.v5.pht002239.v4.phv00159752.v4", "phs000179.v5.pht002239.v4.phv00159754.v4", "phs000179.v5.pht002239.v4.phv00159755.v4", "phs000179.v5.pht002239.v4.phv00159756.v4", "phs000179.v5.pht002239.v4.phv00159836.v4", "phs000179.v5.pht002239.v4.phv00169388.v3"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    df <- phen_list$source_data$pht002239 %>%\n        # Convert character variables to numeric\n        mutate_if(is.character, as.numeric) %>%\n        rename_(ever_smoker_baseline = \"EverSmokedCig\", age = \"Age_Enroll\")\n\n    modifier <- select(df, -topmed_subject_id, -age, -ever_smoker_baseline) %>%\n    # Sum other variables that indicate smoking status, counting NA as 0\n        rowSums(na.rm = TRUE)\n\n    # Add modifier to ever_smoker_baseline and convert to 0/1\n    transmute(df, ever_smoker_baseline = as.numeric(as.logical(ever_smoker_baseline + modifier)),\n            topmed_subject_id, age) %>%\n        # Exclude incomplete records\n        na.omit() %>%\n        return()\n}\n"
+    },
+    {
+      "name": "CRA",
+      "component_study_variables": ["phs000988.v2.pht005248.v2.phv00258650.v2", "phs000988.v2.pht005248.v2.phv00267374.v2", "phs000988.v2.pht005248.v2.phv00267375.v2", "phs000988.v2.pht005248.v2.phv00267376.v2", "phs000988.v2.pht005248.v2.phv00267378.v2", "phs000988.v2.pht005248.v2.phv00267379.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n    df <- phen_list$source_data$pht005248 %>%\n        # Recode 1/2 as 0/1\n        mutate(ever_smoker_baseline = ifelse(ever_Smoker == \"1\", 0,\n                ifelse(ever_Smoker == \"2\", 1, NA)))\n    modifier <- select(df, Current_Smoker, former_Smoker,\n                      cigsperday, cigsperday_average) %>%\n        # Convert variables to numeric\n        mutate_each(funs(as.numeric))\n    # Recode 1 as 0\n    modifier[c(\"Current_Smoker\", \"former_Smoker\")] %<>%\n        mutate_each(funs(ifelse(. == 1, 0, .)))\n    # Sum variables row-wise\n    modifier %<>% rowSums(na.rm = TRUE)\n    transmute(df, topmed_subject_id, age,\n              # Switch ever_smoker_baseline from 0 to 1 if respondent answered positively\n              # to other smoking questions.\n              ever_smoker_baseline = as.numeric(as.logical(ever_smoker_baseline + modifier))) %>%\n        # Exclude incomplete records\n        na.omit() %>%\n        return()\n}\n"
+    },
+    {
+      "name": "FHS_NOS_Gen3_Omni2",
+      "component_study_variables": ["phs000007.v29.pht000074.v10.phv00020925.v4", "phs000007.v29.pht003099.v4.phv00177930.v4", "phs000007.v29.pht006005.v1.phv00273759.v1", "phs000007.v29.pht006006.v1.phv00274252.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    source_data <- phen_list$source_data\n    source_data[c(\"pht000074\", \"pht006006\", \"pht006005\")] %>%\n        # Standardize column order\n        lapply(select, topmed_subject_id, matches(\"g3a070\")) %>%\n        # Set common column names\n        lapply(setNames, c(\"topmed_subject_id\", \"ever_smoker_baseline\")) %>%\n        # bind row-wise\n        bind_rows() %>%\n        # Join with age dataset\n        left_join(source_data$pht003099, \"topmed_subject_id\") %>%\n        transmute(topmed_subject_id, age = age1,\n            # Convert ever_smoker_baseline to numeric\n            ever_smoker_baseline = as.numeric(ever_smoker_baseline)) %>%\n        # Exclude incomplete records\n        na.omit() %>%\n        return()\n}\n"
+    },
+    {
+      "name": "FHS_Offspring",
+      "component_study_variables": ["phs000007.v29.pht000030.v7.phv00007612.v5", "phs000007.v29.pht003099.v4.phv00177930.v4"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    phen_list$source_data %>%\n        # Join all datasets by topmed_subject_id\n        plyr::join_all(\"topmed_subject_id\") %>%\n        # Convert age to numeric\n        transmute(topmed_subject_id, age = as.numeric(age1),\n            # Code ever_smoker_baseline as 1/0\n            ever_smoker_baseline = A99 %>% as.numeric %>% as.logical %>% as.integer) %>%\n        # Exclude incomplete records\n        na.omit() %>%\n        return()\n}\n"
+    },
+    {
+      "name": "FHS_Original",
+      "component_study_variables": ["phs000007.v29.pht000009.v2.phv00000543.v1", "phs000007.v29.pht003099.v4.phv00177930.v4"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    # Join al datasets by topmed_subject_id\n    phen_list$source_data %>% plyr::join_all(\"topmed_subject_id\") %>%\n        # Convert age to numeric\n        transmute(topmed_subject_id, age = as.numeric(age1),\n            # Code ever_smoker_baseline as 1 if MF71 is 1, 2 or 3\n            ever_smoker_baseline = ifelse(MF71 %in% c(\"1\", \"2\", \"3\"), 1,\n                # Code ever_smoker_baseline as 0 if MF71 is 5 or 7, else code it as NA\n                ifelse(MF71 %in% c(\"5\", \"7\"), 0, NA))) %>%\n        # exclude incomplete records\n        na.omit() %>%\n        return()\n}\n"
+    },
+    {
+      "name": "GENOA",
+      "component_study_variables": ["phs001238.v1.pht006039.v1.phv00277507.v1", "phs001238.v1.pht006043.v1.phv00277618.v1", "phs001238.v1.pht006043.v1.phv00277621.v1", "phs001238.v1.pht006043.v1.phv00277624.v1", "phs001238.v1.pht006653.v1.phv00307788.v1", "phs001238.v1.pht006657.v1.phv00307899.v1", "phs001238.v1.pht006657.v1.phv00307902.v1", "phs001238.v1.pht006657.v1.phv00307905.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  library(magrittr)\n\n  source_data <- phen_list$source_data\n  # Row-bind African-American and European-American cohort datasets with age variable.\n  age <- bind_rows(source_data[c(\"pht006039\", \"pht006653\")]) %>%\n    # Rename age variable and convert to numeric.\n    transmute(topmed_subject_id, age = as.numeric(AGE))\n\n  # Row-bind AA and EA cohort datasets with smoking history.\n  smoke <- bind_rows(source_data[c(\"pht006043\", \"pht006657\")]) %>%\n    # Convert AVGCIGDY to numeric.\n    mutate_at(vars(AVGCIGDY), as.numeric) %>%\n    # Recode CIGARETT from \"Yes\"/\"No\" to TRUE/FALSE.\n    mutate_at(vars(CIGARETT), funs(CIGARETT == \"Yes\")) %>%\n    # Recode SMOKE100 from \"Yes\"/\"No\" to 1/0.\n    mutate_at(\n      vars(SMOKE100),\n      funs(ifelse(SMOKE100 == \"No\", 0, ifelse(SMOKE100 == \"Yes\", 1, \"Undefined\")))\n    )\n\n  # To create the harmonized variable, select the component traits and convert SMOKE100 to integer.\n  smoke$ever_smoker_baseline <- transmute(smoke, as.integer(SMOKE100), CIGARETT, AVGCIGDY) %>%\n    # Add them row-wise, ignoring NAs.\n    rowSums(na.rm = TRUE) %>%\n    # Convert to TRUE/FALSE.\n    as.logical() %>%\n    # Convert to 1/0.\n    as.integer()\n\n  # Select only ID and harmonized variable.\n  harmonized <- select(smoke, topmed_subject_id, ever_smoker_baseline) %>%\n    # Join with age dataset.\n    inner_join(age, \"topmed_subject_id\") %>%\n    # Exclude rows with missing data.\n    na.omit()\n\n  return(harmonized)\n}\n"
+    },
+    {
+      "name": "HCHS_SOL",
+      "component_study_variables": ["phs000810.v1.pht004715.v1.phv00226251.v1", "phs000810.v1.pht004715.v1.phv00258106.v1", "phs000810.v1.pht004715.v1.phv00258107.v1", "phs000810.v1.pht004715.v1.phv00258108.v1", "phs000810.v1.pht004715.v1.phv00258110.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  library(magrittr)\n  dat <- phen_list$source_data$pht004715 %>%\n    # Create new 'ever smoker' variable from TBEA1.\n    mutate(ever_smoker_baseline = TBEA1) %>%\n    # Convert cigarettes-per-day variables to numeric.\n    mutate_at(vars(TBEA4, TBEA5A), as.numeric)\n\n  # Create index of participants missing a response to the 'ever smoker' survey\n  # who report currently smoking cigarettes.\n  ind <- is.na(dat$TBEA1) & is_in(dat$TBEA3, c(\"1\", \"2\"))\n  # Code those individuals as \"1\".\n  dat$ever_smoker_baseline[ind] <- \"1\"\n  # Create index of participants who report smoking a positive number of\n  # cigarettes per day.\n  ind <- dat$TBEA4 > 0 | dat$TBEA5A > 0\n  # Code those individuals as \"1\".\n  dat$ever_smoker_baseline[ind] <- \"1\"\n  # Rename age and convert age and smoking to numeric.\n  dat <- transmute(dat, topmed_subject_id, age = as.numeric(AGE),\n                   ever_smoker_baseline = as.numeric(ever_smoker_baseline)) %>%\n    # Exclude rows with missing data.\n    na.omit()\n  return(dat)\n}\n"
+    },
+    {
+      "name": "HVH",
+      "component_study_variables": ["phs001013.v3.pht005311.v2.phv00259376.v2", "phs001013.v3.pht005311.v2.phv00259377.v2", "phs001013.v3.pht005311.v2.phv00259378.v2", "phs001013.v3.pht005311.v2.phv00259394.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  dat <- phen_list$source_data$pht005311 %>%\n    # Convert character variables to numeric.\n    mutate_if(is.character, as.numeric) %>%\n    group_by(topmed_subject_id) %>%\n    # Select only earliest observations for each participant.\n    filter(indexy == min(indexy))\n  # Create index of duplicated subject IDs.\n  dup_index <- duplicated(select(dat, topmed_subject_id))\n  # Create vector of duplicated subject IDs.\n  dups <- select(dat, topmed_subject_id)[dup_index, ]\n  # Filter out duplicated subject IDs.\n  dat <- filter(dat, !(topmed_subject_id %in% unlist(dups))) %>%\n    # Drop unnecessary variables.\n    select(-ccs, -indexy) %>%\n    # Exclude incomplete records.\n    na.omit() %>%\n    # Code ever_smoker_baseline as 1 if smoke is greater than 0\n    mutate(ever_smoker_baseline = as.numeric(as.logical(smoke))) %>%\n    select(-smoke)\n  return(dat)\n}\n"
+    },
+    {
+      "name": "JHS",
+      "component_study_variables": ["phs000286.v5.pht001949.v1.phv00126009.v1", "phs000286.v5.pht001977.v1.phv00128496.v1", "phs000286.v5.pht001977.v1.phv00128498.v1", "phs000286.v5.pht001977.v1.phv00128502.v1", "phs000286.v5.pht001977.v1.phv00128503.v1", "phs000286.v5.pht001977.v1.phv00128506.v1", "phs000286.v5.pht001977.v1.phv00128507.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    # Join all datasets on topmed_subject_id\n    df <- phen_list$source_data %>% plyr::join_all(\"topmed_subject_id\", \"left\") %>%\n        # Recode Y/N as 1/0\n        mutate_each(funs(recode = ifelse(. == \"Y\", 1,\n                                  ifelse(. == \"N\", 0, .))),\n            -topmed_subject_id, -TOBA7, -TOBA11, -AGE01) %>%\n        # Recode TOBA7 to TRUE/FALSE\n        mutate(TOBA7 = !is.na(TOBA7)) %>%\n        # Drop old versions of variables\n        select(topmed_subject_id, age = AGE01, TOBA1_recode, TOBA3_recode, TOBA6_recode,\n            TOBA7, TOBA10_recode, TOBA11) %>%\n        mutate_each(funs(as.numeric))\n\n    # Sum additional smoking questions row-wise\n    modifier <- select(df, -topmed_subject_id, -age, -TOBA1_recode) %>%\n        # Treat NA as 0\n        rowSums(na.rm = TRUE)\n\n    transmute(df, topmed_subject_id, age,\n            # Code ever_smoker_baseline as 1 if respondent gave positive response to any\n            # smoking question\n            ever_smoker_baseline = as.numeric(as.logical(TOBA1_recode + modifier))) %>%\n        # Exclude incomplete records\n        na.omit() %>%\n        return()\n}\n"
+    },
+    {
+      "name": "MESA",
+      "component_study_variables": ["phs000209.v13.pht001111.v4.phv00082639.v2", "phs000209.v13.pht001111.v4.phv00083243.v1", "phs000209.v13.pht001111.v4.phv00083245.v1", "phs000209.v13.pht001111.v4.phv00083247.v1", "phs000209.v13.pht001116.v10.phv00084442.v3", "phs000209.v13.pht001116.v10.phv00085570.v2", "phs000209.v13.pht001116.v10.phv00085572.v2", "phs000209.v13.pht001116.v10.phv00085574.v2", "phs000209.v13.pht001121.v3.phv00087071.v1", "phs000209.v13.pht001121.v3.phv00087252.v1", "phs000209.v13.pht001121.v3.phv00087254.v1", "phs000209.v13.pht001121.v3.phv00087256.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    smk <- phen_list$source_data %>%\n        # Set common column order\n        lapply(select, topmed_subject_id, starts_with(\"age\"), starts_with(\"evsmk\"),\n            starts_with(\"cursmk\"), starts_with(\"cigsday\")) %>%\n        # Set common column names\n        lapply(setNames, c(\"topmed_subject_id\", \"age\", \"evsmk\", \"cursmk\", \"cigsday\")) %>%\n        # bind datasets row-wise\n        bind_rows() %>%\n        # convert character variables to numeric\n        mutate_if(is.character, as.numeric) %>%\n        # Subset to records with a value for at least one of the following variables\n        filter(!(is.na(evsmk) & is.na(cursmk) & is.na(cigsday)))\n\n    # Code ever_smoker_baseline as TRUE if any of the following variables are greater than 0\n    ever_smoker_baseline <- smk %>%\n        select(evsmk, cursmk, cigsday) %>%\n        rowSums(na.rm = TRUE) %>%\n        as.logical()\n\n    smk %>% mutate(ever_smoker_baseline = as.integer(ever_smoker_baseline)) %>%\n        # exclude if evsmk is NA and ever_smoker_baseline is FALSE\n        filter(!(is.na(evsmk) & !ever_smoker_baseline)) %>%\n        select(topmed_subject_id, age, ever_smoker_baseline) %>%\n        # Exclude incomplete records\n        na.omit() %>%\n        return()\n}\n"
+    },
+    {
+      "name": "SAS",
+      "component_study_variables": ["phs000914.v1.pht005253.v1.phv00258680.v1", "phs000914.v1.pht005253.v1.phv00258705.v1", "phs000914.v1.pht005253.v1.phv00258713.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list) {\n    source_data <- phen_list$source_data\n    dataset <- source_data[['pht005253']]\n    # Make age column into a numeric value.\n    dataset$age <- as.numeric(dataset[['Dec_Age']])\n    # Make an empty column to hold current_smoker.\n    dataset$ever_smoker_baseline <- NA\n    # Set ever_smoker_baseline to 1 if either Current_smoke or Past_smoker was equal to 1.\n    dataset$ever_smoker_baseline[dataset$Current_smoke == '1' | dataset$Past_smoker == '1'] <- 1\n    # Set ever_smoker_baseline to 0 if both Current_smoke and Past_smoker were equal to 0.\n    dataset$ever_smoker_baseline[dataset$Current_smoke == '0' & dataset$Past_smoker == '0'] <- 0\n    # Note that other values were left as NA in the final ever_smoker_baseline variable.\n    dataset <- dataset[c(\"topmed_subject_id\", \"age\", \"ever_smoker_baseline\")]\n    # Remove rows with missing values.\n    dataset <- na.omit(dataset)\n    return(dataset)\n}\n"
+    },
+    {
+      "name": "WHI",
+      "component_study_variables": ["phs000200.v11.pht000998.v6.phv00078436.v6", "phs000200.v11.pht000998.v6.phv00078437.v6", "phs000200.v11.pht001003.v6.phv00078773.v6", "phs000200.v11.pht001003.v6.phv00078774.v6"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    # Join all datasets by topmed_subject_id\n    dataset <- plyr::join_all(phen_list$source_data, \"topmed_subject_id\") %>%\n        # Convert character variables to numeric\n        mutate_if(is.character, as.numeric)\n    # Values in F2DAYS above zero are likely errors. They are set to zero here\n    ind <- dataset$F2DAYS > 0\n    dataset$F2DAYS[ind] <- 0\n    # To calculate age at measurement, add baseline age, days since enrollment, and\n    # age since randomization\n    transmute(dataset, topmed_subject_id,\n            ever_smoker_baseline = as.numeric(SMOKEVR),\n            age = AGE + (abs(F2DAYS) + F34DAYS) / 365.25) %>%\n        # Exclude incomplete records\n        na.omit() %>%\n        return()\n}\n"
+    }
+  ]
+}

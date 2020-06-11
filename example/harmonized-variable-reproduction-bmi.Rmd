@@ -1,0 +1,140 @@
+---
+title: Reproduce the `example_bmi_1` variable
+author: Adrienne Stilp
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  github_document
+---
+
+```{r setup, echo = FALSE}
+options(knitr.table.format = 'html')
+knitr::opts_chunk$set(message = FALSE)
+```
+
+This document explains how to use the information in the JSON documentation to reproduce a given harmonized variable using other harmonized variables.
+To reproduce these types of variables, you will need to reproduce each component variable separately and then work with those harmonized values to reproduce the final harmonized variable.
+
+In this document, we'll work with the `example_bmi_1.json` documentation.
+As we'll see soon, this harmonzied variable is produced from two other harmonized variables: `example_height_1` and `example_weight_1`.
+Please see the associated files for instructions on how to reproduce those harmonized variables from the original study data:
+
+* harmonized-variable-reproduction-height.md
+* harmonized-variable-reproduction-weight.md
+
+In those files, we saved the final, combined harmonized variable in tab-separated text files with the required identifiers.
+We'll use those saved files in this harmonization.
+
+
+
+# Setup
+
+First, we'll need to load some packages to help work with the files.
+
+```{r setup-packages}
+library(readr)
+library(dplyr)
+library(stringr)
+library(jsonlite)
+library(xml2)
+```
+
+Next, we'll read in the JSON documentation for `example_bmi_1`.
+```{r read-json}
+json <- fromJSON('example_bmi_1.json', simplifyDataFrame = FALSE)
+```
+
+# Reproducing the harmonized values
+
+In this case, there is only one harmonization unit that uses the combined harmonized data:
+```{r}
+unit <- json$harmonization_units[[1]]
+unit
+```
+
+You can see that the two required variables are `example_height_1` and `example_weight_1`.
+We will read in the harmonized values for these variables that were created from the `example_height_1.json` and `example_weight_1.json` documents.
+```{r}
+height <- readr::read_tsv("example_height_1.tsv")
+head(as.data.frame(height))
+
+
+weight <- readr::read_tsv("example_weight_1.tsv")
+head(as.data.frame(weight))
+```
+
+We can determine the mapping between study subject identifier and `topmed_subject_id` from these files.
+We'll concatenate the identifier columns and then select the unique sets of identifiers.
+```{r}
+subj_map <- height %>%
+  bind_rows(weight) %>%
+  select(SUBJECT_ID, unique_subject_key, topmed_subject_id) %>%
+  # Select unique sets.
+  distinct()
+head(subj_map)
+tail(subj_map)
+```
+
+We should also verify that there is a one-to-one mapping between `unique_subject_key` and `topmed_subject_id`:
+```{r}
+stopifnot(all(!duplicated(subj_map$unique_subject_key)))
+stopifnot(all(!duplicated(subj_map$topmed_subject_id)))
+
+```
+If these checks fail, you will need to verify that you used the same study mapping integers as provided in the `example-phs-mapping.tsv` file when harmonizing the height and weight component variables.
+You will also need to check that you created the topmed_subject_id with a different `unique_id` for each different study accession on dbGaP.
+This check is essential because the harmonization functions generally combine data values for the same subject from the different component traits using `topmed_subject_id`.
+
+Next, create the `phen_list` data structure from these harmonized_variables.
+Unlike the examples for `example_height_1` and `example_weight_1`, the `phen_list` structure will not have a `source_data` element.
+Instead, it will have a `harmonized_data` element.
+This element is al ist containing harmonized data, with one element for each component harmonized trait.
+The name of those elements should be the name of that component variable.
+The contents of the elements is a data frame with columns `topmed_subject_id`, the component harmonized variable name (e.g., `example_height_1`), and the corresponding age variable, if it exists (e.g., `age_at_example_height_1`).
+```{r}
+harmonized_data <- list()
+harmonized_data[["example_height_1"]] <- height %>%
+  select(topmed_subject_id, example_height_1, age_at_example_height_1)
+harmonized_data[["example_weight_1"]] <- weight %>%
+  select(topmed_subject_id, example_weight_1, age_at_example_weight_1)
+phen_list <- list(harmonized_data = harmonized_data)
+lapply(phen_list$harmonized_data, head)
+```
+
+Next, we can extract the harmonization function from the JSON documentation for this harmonization unit.
+```{r}
+cat(unit$harmonization_function)
+harmonize <- eval(parse(text = unit$harmonization_function))
+```
+
+Next, we can run the harmonization on the `phen_list` structure that we just created to produce the final harmonized variable.
+```{r}
+out <- harmonize(phen_list)
+head(out)
+tail(out)
+```
+
+As before, this harmonization function returns a data frame with columns `topmed_subject_id`, the phenotype concept, and age.
+
+Finally, we can add the subject identifiers back to this data frame, and rename variables to add the phenotype concept from the JSON documentation.
+```{r}
+harmonized <- out %>%
+  left_join(subj_map, by = "topmed_subject_id") %>%
+  select(SUBJECT_ID, unique_subject_key, topmed_subject_id, everything()) %>%
+  rename(
+    example_bmi_1 = example_bmi,
+    age_at_example_bmi_1 = age
+  )
+head(as.data.frame(harmonized))
+```
+
+We'll save this harmonized variable in the example data directory.
+```{r}
+readr::write_tsv(harmonized, "example_bmi_1.tsv")
+```
+
+To check if you have run the harmonization correctly, please compare this file against the harmonized data in the `example_data/harmonized/example_bmi_1.tsv` file.
+
+```{r}
+check <- readr::read_tsv("example_data/harmonized/example_bmi_1.tsv")
+stopifnot(all_equal(check, harmonized))
+```

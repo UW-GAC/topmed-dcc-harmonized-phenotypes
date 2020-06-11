@@ -1,0 +1,65 @@
+{
+  "name": "icam1_1",
+  "phenotype_concept": "icam1",
+  "concept_variant": 1,
+  "description": "Intercellular adhesion molecule 1 (ICAM1) concentration in blood.",
+  "version": 1,
+  "dcc_harmonization_id": 131,
+  "data_type": "decimal",
+  "measurement_units": "ng / mL",
+  "has_age_variable": true,
+  "date_harmonized": "2019-04-15 15:17:46",
+  "dcc_harmonization_comments": "This variable was harmonized by converting the component study variables to the appropriate unit of measure as needed and, when possible, accounting for measurements outside an assay's limits of detection (LOD). If the information was available, measurements below the lower limit of detection (LLOD) were set to the LLOD and measurements above the upper limit of detection (ULOD) were set to the ULOD unless otherwise indicated in the study-specific sections below. Some studies identified subjects with measurements outside the LOD; see table below for more details. The assay(s) used to measure ICAM1 concentration from serum or plasma differed by study and/or subcohort.\n\n#### CFS\n\nThe study identified values with low concentrations that had been extrapolated outside the assay range. These extrapolated values were set to the LLOD.\n\n#### FHS\n\nThe *_FHS_* New Offspring Spouse and Omni 1 Cohorts included a variable on dbGaP (phv00172210) indicating which plate a sample was assayed on. Plate differences in ICAM1 concentration were observed in the Omni 1 Cohort after adjusting for age and sex. \n\nThe *_FHS_* Original and Omni 2 Cohorts are not included in this harmonized phenotype at this time.\n\n#### MESA\n\nThe *_MESA_* Family Cohort is not included in this harmonized phenotype at this time.\n\n#### Exam visit for ICAM1 measurements\n\n| Study or subcohort | Visit |\n|---------|----------|\n| CARDIA | Year 5/Exam 3 |\n| CFS | Visit 5 |\n| CHS_Original | Baseline visit |\n| CHS_AfricanAmerican | Baseline visit |\n| FHS_Offspring | Exam 7 |\n| FHS_NewOffspring Spouse | Exam 1|\n| FHS_Gen3 | Exam 1 |\n| FHS_Omni1 | Exam 3 |\n| MESA_Classic | Exam 1 Main |\n| MESA_AirNR | AirNR Exam Main | \n\n#### Assay and limits of detection for ICAM1 measurements\n\n| Study or subcohort | Assay | LLOD | ULOD | Differentiated^1^ |\n|---------|----------|---------|---------|---------|\n| CARDIA | ELISA | 0.031 ng/mL | NA | No |\n| CFS | Unknown | 1.13 ng/mL | 906 ng/mL | Yes |\n| CHS | ELISA | 0.35 ng/mL |  NA  | No |\n| FHS | ELISA  | < 0.35 ng/mL |  NA  | No |\n| MESA_Classic | ELISA | 0.35 ng/mL |  900 ng/mL | Yes |\n| MESA_AirNR | ELISA  |  20 ng/mL  | 1000 ng/mL | Yes |\n\n1. The study included information indicating which measurements were below or above the limit of detection. If \"Yes\", measurements outside the LOD can be identified using component study or subcohort variables.\n\n#### Specimen type for ICAM1 measurements\n\nTable includes studies or subcohorts with known specimen types only.\n\n| Study or subcohort | Specimen |\n|---------|----------|\n| FHS | Serum |\n| MESA | Plasma |\n",
+  "encoded_values": [],
+  "controlled_vocabulary": [
+    {
+      "source": "UMLS",
+      "version": "2018AB",
+      "id": "C4084871"
+    }
+  ],
+  "harmonization_units": [
+    {
+      "name": "CARDIA",
+      "component_study_variables": ["phs000285.v3.pht001697.v2.phv00116390.v2", "phs000285.v3.pht001699.v2.phv00116396.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list) {\n\n  library(dplyr)\n\n  #working dataset\n  dataset <- left_join(phen_list$source_data$pht001699,\n             phen_list$source_data$pht001697,\n             by = 'topmed_subject_id') %>%\n             rename(icam1 = sICAM1, age = EX3_AGE)\n\n  #Converting to numeric variables\n  dataset$age[dataset$age %in% 'NA'] <- NA\n  dataset$icam1[dataset$icam1 %in% 'NA'] <- NA\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  #Removing missing values\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "CFS",
+      "component_study_variables": ["phs000284.v1.pht001902.v1.phv00122012.v1", "phs000284.v1.pht001902.v1.phv00122015.v1", "phs000284.v1.pht001902.v1.phv00124095.v1", "phs000284.v1.pht001902.v1.phv00124097.v1", "phs000284.v1.pht001902.v1.phv00124098.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  #Dataset\n  dataset <- phen_list$source_data$pht001902\n\n  #Selecting subjects with visit 5 data\n  dataset <- subset(dataset, visit == 5)\n\n  #Converting values to numeric\n  dataset$icam[dataset$icam %in% 'NA'] <- NA\n  dataset$icam_flag[dataset$icam_flag %in% 'NA'] <- NA\n\n  dataset <- mutate(dataset,\n                   icam1 = as.numeric(icam),\n                   icam_flag = as.numeric(icam_flag),\n                   age = as.numeric(age))\n\n  #Setting extrapolated values to the LLOD\n  dataset$icam1[dataset$icam_flag == 1 & dataset$icam_comment == 'L'] <- 1.13\n\n  #Selecting final varaibles and removing missing\n  dataset <- select(dataset, topmed_subject_id, icam1, age)\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "CHS",
+      "component_study_variables": ["phs000287.v6.pht001449.v1.phv00098764.v1", "phs000287.v6.pht001452.v1.phv00100487.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  #Dataset\n  dataset <- left_join(phen_list$source_data$pht001449,\n                       phen_list$source_data$pht001452,\n                       by = 'topmed_subject_id') %>%\n             rename(icam1 = ICAM1, age = AGEBL)\n\n  #Converting to numeric values\n  dataset$icam1[dataset$icam1 %in% 'NA'] <- NA\n  dataset$age[dataset$age %in% 'NA'] <- NA\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  #Removing missing values\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "FHS_Gen3_Offspring",
+      "component_study_variables": ["phs000007.v29.pht000093.v6.phv00021939.v5", "phs000007.v29.pht000303.v5.phv00036405.v4", "phs000007.v29.pht003099.v4.phv00177930.v4", "phs000007.v29.pht003099.v4.phv00177942.v4"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Dataset\n  icam_of <- left_join(phen_list$source_data$pht000093,\n                       phen_list$source_data$pht003099,\n                       by = 'topmed_subject_id') %>%\n             select(topmed_subject_id, icam, age7) %>%\n             rename(age = age7, icam1 = icam)\n  icam_g3 <- left_join(phen_list$source_data$pht000303,\n                       phen_list$source_data$pht003099,\n                       by = 'topmed_subject_id') %>%\n             select(topmed_subject_id, G3ICAM, age1) %>%\n             rename(icam1 = G3ICAM, age = age1)\n  dataset <- bind_rows(icam_of, icam_g3)\n\n  #Convert to numeric variables\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  # Remove records with NAs from dataset.\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "FHS_NewOffspringSpouse_Omni1",
+      "component_study_variables": ["phs000007.v29.pht002890.v4.phv00172215.v4", "phs000007.v29.pht003099.v4.phv00177928.v4", "phs000007.v29.pht003099.v4.phv00177930.v4", "phs000007.v29.pht003099.v4.phv00177934.v4"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Dataset\n  dataset <- left_join(phen_list$source_data$pht002890,\n             phen_list$source_data$pht003099,\n             by = 'topmed_subject_id')\n\n  #Selection correct age for visit\n  dataset <- subset(dataset, idtype == 2 | idtype == 7)\n  dataset$age <- ifelse(dataset$idtype == 2, dataset$age1, dataset$age3)\n\n  #Selecting variables\n  dataset <- select(dataset, topmed_subject_id, icam, age) %>%\n             rename(icam1 = icam)\n\n  #Changing to numeric values\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  # Remove records with NAs from dataset.\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "MESA_AirNR",
+      "component_study_variables": ["phs000209.v13.pht001111.v4.phv00082639.v2", "phs000209.v13.pht001111.v4.phv00082963.v1", "phs000209.v13.pht001111.v4.phv00082964.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  #Dataset\n  dataset <- phen_list$source_data$pht001111 %>%\n             rename(icam_m = icam1m, age = age1c)\n\n  #Convert variables to numeric values\n  dataset$icam1[dataset$icam1 %in% 'NA'] <- NA\n  dataset$icam_m[dataset$icam_m %in% 'NA'] <- NA\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  #Limit of detection values\n  dataset$icam1[dataset$icam_m == -333] <- 20.0\n\n  #Select harmonizaed variables\n  dataset <- select(dataset, topmed_subject_id, icam1, age)\n\n  #Remove missing values\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "MESA_Classic",
+      "component_study_variables": ["phs000209.v13.pht001116.v10.phv00084442.v3", "phs000209.v13.pht001116.v10.phv00085117.v2", "phs000209.v13.pht001116.v10.phv00085118.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list) {\n  #Dataset\n  dataset <- phen_list$source_data$pht001116 %>%\n             rename(icam_m = icam11M, age = age1c)\n\n  #Convert variables to numeric values\n  dataset$icam1[dataset$icam1 %in% 'NA'] <- NA\n  dataset$icam_m[dataset$icam_m %in% 'NA'] <- NA\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  #Limit of detection values\n  dataset$icam1[dataset$icam_m == -333] <- 0.35\n  dataset$icam1[dataset$icam_m == -555] <- 900\n\n  #Select harmonizaed variables\n  dataset <- select(dataset, topmed_subject_id, icam1, age)\n\n  #Remove missing values\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "name": "tnfa_r1_1",
+  "phenotype_concept": "tnfa_r1",
+  "concept_variant": 1,
+  "description": "Tumor necrosis factor alpha receptor 1 (TNFa-R1) concentration in blood.",
+  "version": 1,
+  "dcc_harmonization_id": 145,
+  "data_type": "decimal",
+  "measurement_units": "pg / mL",
+  "has_age_variable": true,
+  "date_harmonized": "2019-04-15 15:56:50",
+  "dcc_harmonization_comments": "This variable was harmonized by converting the component study variables to the appropriate unit of measure as needed and, when possible, accounting for measurements outside an assay's limits of detection (LOD). If the information was available, measurements below the lower limit of detection (LLOD) were set to the LLOD and measurements above the upper limit of detection (ULOD) were set to the ULOD unless otherwise indicated in the study-specific sections below. Some studies identified subjects with measurements outside the LOD; see table below for more details. The assay(s) used to measure TNFa-R1 concentration from serum or plasma differed by study and/or subcohort.\n\n#### MESA\n\nValues above the original assay ULOD (500 pg/mL) are valid and were assayed after dilution. Values that continued to be above the ULOD after dilution as indicated by the study were set to a 10-fold diluted ULOD (5000 pg/mL). \n\nThe *_MESA_* Family and AirNR Cohorts are not included in this harmonized phenotype at this time.\n\n#### Exam visit for TNFa-R1 measurements\n\n| Study or subcohort | Visit |\n|---------|----------|\n| MESA_Classic | Exam 1 Main |\n\n#### Assay and limits of detection for TNFa-R1 measurements\n\n| Study or subcohort | Assay | LLOD | ULOD^1^ | Differentiated^2^ |\n|---------|----------|---------|---------|---------|\n| MESA_Classic | ELISA | 6.03 pg/mL | 500 pg/mL | Yes |\n\n1. Values over the ULOD are valid and were obtained by dilution.\n2. The study included information indicating which measurements were below or above the limit of detection. If \"Yes\", measurements outside the LOD can be identified using component study or subcohort variables.\n\n#### Specimen type for TNFa-R1 measurements\n\nTable includes studies or subcohorts with known specimen types only.\n\n| Study or subcohort | Specimen |\n|---------|----------|\n| MESA | Serum |\n",
+  "encoded_values": [],
+  "controlled_vocabulary": [
+    {
+      "source": "UMLS",
+      "version": "2018AB",
+      "id": "C4050424"
+    }
+  ],
+  "harmonization_units": [
+    {
+      "name": "MESA",
+      "component_study_variables": ["phs000209.v13.pht001116.v10.phv00084442.v3", "phs000209.v13.pht001116.v10.phv00085029.v3"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  #Dataset\n  dataset <- phen_list$source_data$pht001116 %>%\n             rename(tnfa_r1 = tnfri1, age = age1c)\n\n  #Changing to numeric values\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  #Samples with insufficient volume --> NA\n  dataset$tnfa_r1[dataset$tnfa_r1 == -888] <- NA\n\n  #Sample above the ULOD --> 5000\n  dataset$tnfa_r1[dataset$tnfa_r1 == -555] <- 5000\n\n  #Removing missing values\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    }
+  ]
+}

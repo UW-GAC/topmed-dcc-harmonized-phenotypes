@@ -1,0 +1,62 @@
+{
+  "name": "carotid_plaque_1",
+  "phenotype_concept": "carotid_plaque",
+  "concept_variant": 1,
+  "description": "Presence or absence of carotid plaque.",
+  "version": 1,
+  "dcc_harmonization_id": 88,
+  "data_type": "encoded",
+  "measurement_units": null,
+  "has_age_variable": true,
+  "date_harmonized": "2018-05-30 13:40:57",
+  "dcc_harmonization_comments": "This variable was harmonized by converting encoded component variables indicating the presence or type of carotid plaque or lesion, to a binary variable indicating the presence or absence of carotid plaque. Carotid plaque or lesion was defined as the presence of abnormal wall thickness, wall shape (surface focality or roughness), or wall texture. \n\nMeasurements of stenosis were originally considered for harmonization for this variable, as a proxy measurement of plaque. However, since stenosis is a fundamentally different phenotypic concept, the DCC created a separate harmonized variable `carotid_stenosis_1`.\n\n#### Amish\n\n*_Amish_* defined the presence of carotid plaque as \"measured by intima-media thickness\" (component variable phv00252989.v1.p1) on the far wall of the common carotid arteries.\n\n#### CHS\n\nBaseline carotid ultrasound scans for the Original cohort were reread due to reader drift. Reread measurements of *_CHS_* subjects were used for harmonization.[^1]\n\n#### MESA\n\nThe *_MESA_* Family subcohort is not included in this harmonized phenotype at this time.\n\n#### Instrumentation\n\nStudies used different instruments at their carotid ultrasound exams:\n\n| Study | Instrument                 |\n|-------|----------------------------|\n| Amish | ATL Phillps HDI 5000       |\n| ARIC  | Biosound 2000 II SA        |\n| CHS   | Toshiba SSA-270A           |\n| JHS   | Hewlett Packard SONOS 4500 |\n| MESA  | GE Logiq 700               |\n\n\n[^1]:[Documentation Without Data Collection Forms phd002779.1](https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/document.cgi?study_id=phs000287.v6.p1&phd=2779)\n",
+  "encoded_values": [
+    {
+      "code": "0",
+      "value": "Plaque not present"
+    },
+    {
+      "code": "1",
+      "value": "Plaque present"
+    }
+  ],
+  "controlled_vocabulary": [
+    {
+      "source": "UMLS",
+      "version": "2019AA",
+      "id": "C0751633"
+    }
+  ],
+  "harmonization_units": [
+    {
+      "name": "Amish",
+      "component_study_variables": ["phs000956.v2.pht005002.v1.phv00252976.v1", "phs000956.v2.pht005002.v1.phv00252989.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Get dataset and rename variables.\n  dataset <- phen_list$source_data$pht005002 %>%\n    rename(age = age_baseline, carotid_plaque = imt_anyplaque_baseline)\n\n  # Substitute the winsorized age value of '90+' to a numeric value 90.\n  dataset$age[dataset$age %in% '90+'] <- 90\n\n  # Substitute the value of 'NA' to missing.\n  dataset$age[dataset$age %in% 'NA'] <- NA\n  dataset$carotid_plaque[dataset$carotid_plaque %in% 'NA'] <- NA\n\n  # Remove records with NAs from dataset.\n  dataset <- dataset[!is.na(dataset$age) & !is.na(dataset$carotid_plaque), ]\n\n  # Convert character values to numeric.\n  dataset <- mutate(dataset, age = as.numeric(age))\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "ARIC",
+      "component_study_variables": ["phs000280.v3.pht004063.v1.phv00204712.v1", "phs000280.v3.pht004063.v1.phv00204791.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  library(magrittr)\n\n  dataset <- phen_list$source_data$pht004063\n\n  # Rename age and plaque variables\n  dataset <- rename(dataset, age = V1AGE01, carotid_plaque = PLAQUE01)\n\n  # Convert \"T\" entry to NA. \"T\" is interpreted as \"missing data\"\n  dataset[which(dataset$carotid_plaque == \"T\"), ]$carotid_plaque <- NA\n\n  # Exclude missing records\n  dataset <- na.omit(dataset)\n\n  # Convert numeric to character.\n  dataset$carotid_plaque <- as.character(dataset$carotid_plaque)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "CHS",
+      "component_study_variables": ["phs000287.v6.pht001452.v1.phv00100290.v1", "phs000287.v6.pht001452.v1.phv00100487.v1", "phs000287.v6.pht001473.v1.phv00101306.v1", "phs000287.v6.pht001473.v1.phv00101307.v1", "phs000287.v6.pht001473.v1.phv00101317.v1", "phs000287.v6.pht001473.v1.phv00101318.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Join age data and lesion data.\n  dataset <- plyr::join_all(phen_list$source_data) %>%\n\n    # Rename age and lesion variables.\n    rename(age = AGEBL,\n           subcohort = PERSTAT,\n           r_les_aa = LMRPH141,\n           l_les_aa = LMRPH241,\n           r_les_orig_rr = LMRPH155,\n           l_les_orig_rr = LMRPH255)\n\n  # Convert from character to numeric.\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  # Subset cohort 1 and create plaque variable.\n  dataset_orig <- subset(dataset, select = c(topmed_subject_id,\n                                             age,\n                                             subcohort,\n                                             r_les_orig_rr,\n                                             l_les_orig_rr))\n  dataset_orig <- dataset_orig[dataset_orig$subcohort == 1, ]\n  dataset_orig$carotid_plaque <-\n    (dataset_orig$r_les_orig_rr > 0 | dataset_orig$l_les_orig_rr > 0) %>%\n    as.logical() %>%\n    as.integer() %>%\n    as.character()\n\n  # Subset cohort 2 and create plaque variable.\n  dataset_new <- subset(dataset, select = c(topmed_subject_id,\n                                            age,\n                                            subcohort,\n                                            r_les_aa,\n                                            l_les_aa))\n  dataset_new <- dataset_new[dataset_new$subcohort == 2, ]\n  dataset_new$carotid_plaque <- (dataset_new$r_les_aa > 0 | dataset_new$l_les_aa > 0) %>%\n    as.logical() %>%\n    as.integer() %>%\n    as.character()\n\n  # Combine plaque variable from both cohorts.\n  dataset_orig <- subset(dataset_orig, select = c(topmed_subject_id, age, carotid_plaque))\n  dataset_new <- subset(dataset_new, select = c(topmed_subject_id, age, carotid_plaque))\n  dataset <- dplyr::full_join(dataset_orig,\n                               dataset_new,\n                               by = c(\"topmed_subject_id\", \"age\", \"carotid_plaque\"))\n\n  # Remove NAs.\n  dataset <- na.omit(dataset)\n\n  # Convert to character.\n  dataset$carotid_plaque <- as.character(dataset$carotid_plaque)\n\n  return(dataset)\n\n}\n"
+    },
+    {
+      "name": "JHS",
+      "component_study_variables": ["phs000286.v5.pht001949.v1.phv00126009.v1", "phs000286.v5.pht001978.v1.phv00128573.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Get dataset and rename variables.\n  source_data <- phen_list$source_data\n  dataset <- inner_join(source_data$pht001949,\n                        source_data$pht001978,\n                        by = \"topmed_subject_id\") %>%\n    rename(age = AGE01, carotid_plaque = plq01)\n\n  # Substitute the value of 'NA' to missing.\n  dataset$carotid_plaque[dataset$carotid_plaque %in% 'NA'] <- NA\n\n  # Remove records with NAs from dataset.\n  dataset <- dataset[!is.na(dataset$age) & !is.na(dataset$carotid_plaque), ]\n\n  # Convert character values to numeric.\n  dataset <- mutate(dataset, age = as.numeric(age))\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "MESA",
+      "component_study_variables": ["phs000209.v13.pht001111.v4.phv00082639.v2", "phs000209.v13.pht001116.v10.phv00084442.v3", "phs000209.v13.pht001116.v10.phv00084797.v2", "phs000209.v13.pht001116.v10.phv00084802.v2", "phs000209.v13.pht001121.v3.phv00087071.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  harmonized <- phen_list$source_data$pht001116 %>%\n    # Recode 8 as NA.\n    mutate_at(vars(rmorph1, lmorph1), funs(na_if(., \"8\"))) %>%\n    # Filter out rows where left and right lesion morphology are missing.\n    filter(!(is.na(rmorph1) & is.na(lmorph1))) %>%\n    # Convert character vectors to numeric.\n    mutate_if(is.character, as.numeric) %>%\n    # Specify transformations will be by row.\n    rowwise() %>%\n    # Select ID and age and convert plaque to 0/1.\n    transmute(\n      topmed_subject_id,\n      age = age1c,\n      carotid_plaque = as.character(as.numeric(as.logical(max(rmorph1, lmorph1, na.rm = TRUE))))\n    ) %>%\n    # Exclude rows with missing data.\n    na.omit()\n  return(harmonized)\n}\n"
+    }
+  ]
+}

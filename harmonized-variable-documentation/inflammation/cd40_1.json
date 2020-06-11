@@ -1,0 +1,35 @@
+{
+  "name": "cd40_1",
+  "phenotype_concept": "cd40",
+  "concept_variant": 1,
+  "description": "Cluster of differentiation 40 ligand (CD40) concentration in blood.",
+  "version": 1,
+  "dcc_harmonization_id": 128,
+  "data_type": "decimal",
+  "measurement_units": "ng / mL",
+  "has_age_variable": true,
+  "date_harmonized": "2019-04-15 15:02:25",
+  "dcc_harmonization_comments": "This variable was harmonized by converting the component study variables to the appropriate unit of measure as needed and, when possible, accounting for measurements outside an assay's limits of detection (LOD). If the information was available, measurements below the lower limit of detection (LLOD) were set to the LLOD and measurements above the upper limit of detection (ULOD) were set to the ULOD unless otherwise indicated in the study-specific sections below. Some studies identified subjects with measurements outside the LOD; see table below for more details. The assay(s) used to measure CD40 concentration from serum or plasma differed by study and/or subcohort.\n\n#### FHS\n\nThe *_FHS_* Original, New Offspring Spouse, Generation 3, Omni 1, and Omni 2 Cohorts are not included in this harmonized phenotype at this time.\n\n#### MESA\n\nAfter careful consideration of normal CD40 ranges and assay limits, the units of the dbGaP variable (phv00085021) were inferred to be ng/mL instead of pg/mL as reported in the dbGaP metadata. These inferred units were used when harmonizing this component variable.\n\nThe *_MESA_* AirNR and Family Cohorts are not included in this harmonized phenotype at this time.\n\n#### Exam visit for CD40 measurements\n\n| Study or subcohort | Visit |\n|---------|----------|\n| FHS_Offspring | Exam 7 |\n| MESA_Classic | Exam 1 Main |\n\n#### Assay and limits of detection for CD40 measurements\n\n| Study or subcohort | Assay | LLOD | ULOD | Differentiated^1^ |\n|---------|----------|---------|---------|---------|\n| FHS_Offspring | ELISA | 0.005 ng/mL | NA | No |\n| MESA_Classic | ELISA | 0.0042 ng/mL | NA | No | \n\n1. The study included information indicating which measurements were below or above the limit of detection. If \"Yes\", measurements outside the LOD can be identified using component study or subcohort variables.\n\n#### Specimen type for CD40 measurements\n\nTable includes studies or subcohorts with known specimen types only.\n\n| Study or subcohort | Specimen |\n|---------|----------|\n| FHS | Plasma |\n| MESA | Serum |\n",
+  "encoded_values": [],
+  "controlled_vocabulary": [
+    {
+      "source": "UMLS",
+      "version": "2018AB",
+      "id": "C2825885"
+    }
+  ],
+  "harmonization_units": [
+    {
+      "name": "FHS",
+      "component_study_variables": ["phs000007.v29.pht000079.v6.phv00021687.v5", "phs000007.v29.pht003099.v4.phv00177942.v4"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  #Dataset\n  dataset <- left_join(phen_list$source_data$pht000079,\n                       phen_list$source_data$pht003099,\n                       by = 'topmed_subject_id') %>%\n             rename(cd40 = CD40P, age = age7)\n\n  #Converting to numeric variables\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  # Remove records with NAs from dataset.\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "MESA",
+      "component_study_variables": ["phs000209.v13.pht001116.v10.phv00084442.v3", "phs000209.v13.pht001116.v10.phv00085021.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  #Dataset\n  dataset <- phen_list$source_data$pht001116 %>%\n             rename(cd40 = cd40l1, age = age1c)\n\n  #Converting to numeric values\n  dataset <- replace(dataset, dataset == 'NA', NA) %>%\n             mutate_if(is.character, as.numeric)\n\n  #Removing missing values\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    }
+  ]
+}

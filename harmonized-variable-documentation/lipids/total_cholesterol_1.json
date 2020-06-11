@@ -1,0 +1,95 @@
+{
+  "name": "total_cholesterol_1",
+  "phenotype_concept": "total_cholesterol",
+  "concept_variant": 1,
+  "description": "Blood mass concentration of total cholesterol",
+  "version": 3,
+  "dcc_harmonization_id": 124,
+  "data_type": "decimal",
+  "measurement_units": "mg/dL",
+  "has_age_variable": true,
+  "date_harmonized": "2018-12-12 15:54:03",
+  "dcc_harmonization_comments": "This variable was harmonized by converting study variables to the appropriate\nunit of measure as needed.\n\n#### CHS\n\nThe component study variable `CHOLADJ` (phv00100491) was already adjusted for\nlaboratory drift as provided.\n\n#### FHS\n\nDCC analysts could not confirm that data from the Original cohort available in\ndbGaP should be used for harmonization, and they are not included.\n\n#### Assays and measurement\n\nLipids were measured in a number of different methods across studies:\n\n| study | method |\n|-------|--------|\n| Amish | serum |\n| ARIC | plasma |\n| CARDIA | plasma |\n| CFS | plasma |\n| CHS | plasma |\n| FHS | plasma |\n| GENOA | serum |\n| HCHS/SOL | serum |\n| JHS | serum |\n| MESA | plasma |\n| SAS | serum |\n\n### QC Checks\n\n#### CFS\n\nThe distribution of values for this phenotype is substantially lower than other\nstudies. DCC analysts confirmed with study correspondents that the units are\ncorrect.\n\n",
+  "encoded_values": [],
+  "controlled_vocabulary": [
+    {
+      "source": "UMLS",
+      "version": "2019AA",
+      "id": "C0543421"
+    }
+  ],
+  "harmonization_units": [
+    {
+      "name": "Amish",
+      "component_study_variables": ["phs000956.v2.pht005002.v1.phv00252976.v1", "phs000956.v2.pht005002.v1.phv00253020.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Get dataset and rename variables.\n  dataset <- phen_list$source_data$pht005002 %>%\n    rename(age = age_baseline, total_cholesterol = totchol_baseline)\n\n  # Substitute the winsorized age value of '90+' to a numeric value 90.\n  dataset$age[dataset$age %in% '90+'] <- 90\n\n  # Substitute the value of 'NA' to missing.\n  dataset$age[dataset$age %in% 'NA'] <- NA\n  dataset$total_cholesterol[dataset$total_cholesterol %in% 'NA'] <- NA\n\n  # Remove records with NAs from dataset.\n  dataset <- dataset[!is.na(dataset$age) & !is.na(dataset$total_cholesterol), ]\n\n  # Convert character values to numeric.\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "ARIC",
+      "component_study_variables": ["phs000280.v4.pht004063.v2.phv00204712.v1", "phs000280.v4.pht004063.v2.phv00204735.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  library(magrittr)\n  dataset <- phen_list$source_data$pht004063 %>%\n    rename(age = V1AGE01, total_cholesterol = TCHSIU01)\n\n  # Convert chol from SI unit to mg/dL using given conversion on ARIC data form\n\n    # https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/document.cgi?study_id=\n    # phs000280.v4.p1&phv=204738&phd=2881&pha=&pht=1440&phvf=&phdf=&phaf=&phtf=\n    # &dssp=1&consent=&temp=1#sec132\n\n  dataset$total_cholesterol <- as.numeric(dataset$total_cholesterol) / 0.02586\n\n  # Convert character values to numeric\n  dataset %>% mutate_if(is.character, as.numeric) %>%\n    na.omit() %>%\n    return()\n}\n"
+    },
+    {
+      "name": "CARDIA",
+      "component_study_variables": ["phs000285.v3.pht001559.v2.phv00112439.v2", "phs000285.v3.pht001588.v2.phv00113700.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  source_data <- phen_list$source_data\n  # Join lipids data with age data.\n  dat <- full_join(source_data$pht001559, source_data$pht001588, \"topmed_subject_id\") %>%\n    # Rename variables and convert to numeric.\n    transmute(topmed_subject_id, age = as.numeric(A01AGE2),\n              total_cholesterol = as.numeric(AL1CHOL)) %>%\n    # Exclude rows with missing data.\n    na.omit()\n  return(dat)\n}\n"
+    },
+    {
+      "name": "CFS",
+      "component_study_variables": ["phs000284.v1.pht001902.v1.phv00122012.v1", "phs000284.v1.pht001902.v1.phv00122015.v1", "phs000284.v1.pht001902.v1.phv00123953.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  phen_list$source_data$pht001902 %>%\n    # Convert character vectors to numeric\n    mutate_if(is.character, as.numeric) %>%\n    # Subset to visit 5\n    filter(visit == 5) %>%\n    # Select only relevant variables\n    select(topmed_subject_id, age, total_cholesterol = cholesterol) %>%\n    na.omit() %>%\n    return()\n}\n"
+    },
+    {
+      "name": "CHS",
+      "component_study_variables": ["phs000287.v6.pht001452.v1.phv00100487.v1", "phs000287.v6.pht001452.v1.phv00100491.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  phen_list$source_data$pht001452 %>%\n    rename(age = AGEBL, total_cholesterol = CHOLADJ) %>%\n    # Convert character values to numeric\n    mutate_if(is.character, as.numeric) %>%\n    # Exclude incomplete records\n    na.omit() %>%\n    return()\n}\n"
+    },
+    {
+      "name": "FHS_Gen3_NewOffspringSpouse_Omni2",
+      "component_study_variables": ["phs000007.v29.pht006026.v1.phv00277020.v1", "phs000007.v29.pht006026.v1.phv00277047.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  dataset <- phen_list$source_data$pht006026 %>%\n    # Convert character vectors to numeric\n    mutate_if(is.character, as.numeric) %>%\n    # Rename age and cholesterol variables.\n    select(topmed_subject_id, age = AGE1, total_cholesterol = TC1) %>%\n    # Exclude rows with missing data.\n    na.omit()\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "FHS_Offspring",
+      "component_study_variables": ["phs000007.v29.pht006027.v1.phv00277077.v1", "phs000007.v29.pht006027.v1.phv00277194.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  dataset <- phen_list$source_data$pht006027 %>%\n    # Convert character vectors to numeric\n    mutate_if(is.character, as.numeric) %>%\n    # Rename age and cholesterol variables.\n    select(topmed_subject_id, age = AGE1, total_cholesterol = TC1) %>%\n    # Exclude rows with missing data.\n    na.omit()\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "GENOA",
+      "component_study_variables": ["phs001238.v1.pht006039.v1.phv00277507.v1", "phs001238.v1.pht006041.v1.phv00277573.v1", "phs001238.v1.pht006653.v1.phv00307788.v1", "phs001238.v1.pht006655.v1.phv00307854.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Get dataset.\n  source_data <- phen_list$source_data\n  data_aa <- inner_join(source_data$pht006039,\n                        source_data$pht006041,\n                        by = \"topmed_subject_id\")\n  data_ea <- inner_join(source_data$pht006653,\n                        source_data$pht006655,\n                        by = \"topmed_subject_id\")\n  dataset <- union(data_aa, data_ea)\n\n  # Rename variables.\n  dataset <- rename(dataset, age = AGE, total_cholesterol = CHOL)\n\n  # Substitute the value of 'NA' to missing.\n  dataset$total_cholesterol[dataset$total_cholesterol %in% 'NA'] <- NA\n  dataset$age[dataset$age %in% 'NA'] <- NA\n\n  # Remove records with NAs from dataset.\n  dataset <- dataset[!is.na(dataset$age) & !is.na(dataset$total_cholesterol), ]\n\n  # Convert character values to numeric.\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "HCHS_SOL",
+      "component_study_variables": ["phs000810.v1.pht004715.v1.phv00226251.v1", "phs000810.v1.pht004715.v1.phv00253238.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  # Rename and convert variables to numeric.\n  dat <- transmute(phen_list$source_data$pht004715, topmed_subject_id,\n                   age = as.numeric(AGE),\n                   total_cholesterol = as.numeric(LABA66)) %>%\n  # Exclude rows with missing data\n  na.omit()\n  return(dat)\n}\n"
+    },
+    {
+      "name": "JHS",
+      "component_study_variables": ["phs000286.v5.pht001945.v1.phv00125927.v1", "phs000286.v5.pht001949.v1.phv00126009.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Get dataset and rename variables.\n  source_data <- phen_list$source_data\n  dataset <- inner_join(source_data$pht001949,\n                        source_data$pht001945,\n                        by = \"topmed_subject_id\") %>%\n    rename(age = AGE01, total_cholesterol = CHR)\n\n  # Substitute the value of 'NA' to missing.\n  dataset$total_cholesterol[dataset$total_cholesterol %in% 'NA'] <- NA\n\n  # Remove records with NAs from dataset.\n  dataset <- dataset[!is.na(dataset$age) & !is.na(dataset$total_cholesterol), ]\n\n  # Convert character values to numeric.\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "MESA",
+      "component_study_variables": ["phs000209.v13.pht001111.v4.phv00082639.v2", "phs000209.v13.pht001111.v4.phv00082956.v1", "phs000209.v13.pht001116.v10.phv00084442.v3", "phs000209.v13.pht001116.v10.phv00084974.v2", "phs000209.v13.pht001121.v3.phv00087071.v1", "phs000209.v13.pht001121.v3.phv00087100.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Get list of dataframes.\n  source_data <- phen_list$source_data\n  # Rename variables in the family exam to match variables in the other dataframes.\n  source_data$pht001121 <- rename(source_data$pht001121, chol1 = cholf, age1c = agefc)\n  # Bind datasets row-wise.\n  dat <- bind_rows(source_data) %>%\n    # Rename cholesterol and age variables, and convert to numeric.\n    transmute(topmed_subject_id, total_cholesterol = as.numeric(chol1),\n              age = as.numeric(age1c)) %>%\n    # Exclude rows with missing values.\n    na.omit()\n\n  return(dat)\n}\n"
+    },
+    {
+      "name": "SAS",
+      "component_study_variables": ["phs000914.v1.pht005253.v1.phv00258680.v1", "phs000914.v1.pht005253.v1.phv00258733.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  library(magrittr)\n  dataset <- phen_list$source_data$pht005253\n\n  # Set string entries of \"NA\" to NA\n  dataset[which(dataset$Cholesterol == \"NA\"), ]$Cholesterol <- NA\n\n  # Convert character values to numeric and remove <NA>s from dataset\n  dataset %>% mutate_if(is.character, as.numeric) %>%\n    rename(age = Dec_Age, total_cholesterol = Cholesterol) %>%\n    na.omit() %>%\n    return()\n}\n"
+    }
+  ]
+}

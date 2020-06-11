@@ -1,0 +1,29 @@
+{
+  "name": "example_weight_1",
+  "phenotype_concept": "example_weight",
+  "concept_variant": 1,
+  "description": "Example body weight of subject at the baseline visit.",
+  "version": 1,
+  "dcc_harmonization_id": 2,
+  "data_type": "decimal",
+  "measurement_units": "kg",
+  "has_age_variable": true,
+  "date_harmonized": "2020-03-25 11:00:00",
+  "dcc_harmonization_comments": "This variable was harmonized by converting units to kg, when necessary.\n",
+  "encoded_values": [],
+  "controlled_vocabulary": [],
+  "harmonization_units": [
+    {
+      "name": "StudyA",
+      "component_study_variables": ["phs001985.v1.pht009922.v1.phv00427206.v1", "phs001985.v1.pht009922.v1.phv00427207.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list) {\n  library(dplyr)\n  source_data <- phen_list$source_data\n\n  dataset <- source_data[[\"pht009922\"]]\n\n  dataset <- dataset %>%\n    # Subset to non-missing values.\n    filter(!is.na(WGTV1)) %>%\n    # Rename variable.\n    rename(example_weight = WGTV1, age = AGEV1)\n\n  # Convert to numeric.\n  dataset$example_weight <- as.numeric(dataset$example_weight)\n  dataset$age <- as.numeric(dataset$age)\n\n  # Return the final dataset.\n  dataset\n\n}\n"
+    },
+    {
+      "name": "StudyB",
+      "component_study_variables": ["phs001986.v1.pht009926.v1.phv00427218.v1", "phs001986.v1.pht009955.v1.phv00427373.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list) {\n  library(dplyr)\n  source_data <- phen_list$source_data\n\n  age_dat <- source_data[[\"pht009955\"]]\n\n  dataset <- source_data[[\"pht009926\"]]\n\n  dataset <- dataset %>%\n    # Subset to non-missing values.\n    filter(!is.na(weight)) %>%\n    # Merge with the age dataset.\n    left_join(age_dat, by = \"topmed_subject_id\") %>%\n    # Convert to numeric.\n    mutate(\n      example_weight = as.numeric(weight),\n      age = as.numeric(age),\n    ) %>%\n    # Convert from pounds to kg.\n    mutate(\n      example_weight = example_weight / 2.2\n    ) %>%\n    # Select appropriate columns.\n    select(topmed_subject_id, example_weight, age)\n\n  # Return the final dataset.\n  dataset\n\n}\n"
+    }
+  ]
+}

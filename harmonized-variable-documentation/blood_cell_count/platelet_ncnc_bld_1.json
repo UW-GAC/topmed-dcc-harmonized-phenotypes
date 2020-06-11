@@ -1,0 +1,89 @@
+{
+  "name": "platelet_ncnc_bld_1",
+  "phenotype_concept": "platelet_ncnc_bld",
+  "concept_variant": 1,
+  "description": "Count by volume, or number concentration (ncnc), of platelets in the blood (bld).",
+  "version": 4,
+  "dcc_harmonization_id": 114,
+  "data_type": "integer",
+  "measurement_units": "thousands / microliter",
+  "has_age_variable": true,
+  "date_harmonized": "2018-09-28 15:28:37",
+  "dcc_harmonization_comments": "For studies or cohorts with measurements at more than one visit, in order to maximize sample size, one measurement per subject was selected, rather than choosing the same visit for all subjects. This was done on a trait-by-trait basis. The algorithm for choosing a visit for a subject differed by study.\n\n### Study-specific comments\n\n#### ARIC\nThe visit with the most non-missing phenotype values was chosen first. For subjects without measurements at this visit, the visit with the next most non-missing values was chosen, and so forth in succession. \n\n#### Amish\nSubjects with age recorded as 90+ were assigned a harmonized age of 90.\n\n### QC checks\n\nAnalysts should carefully examine distributions of the *_WHI_* platelet values. There is at least one extreme outlier.\n\nPlease note that visit selection to maximize sample size introduced the possibility that related _harmonized_ hematology variables may be measured at different visits for a given subject. \n",
+  "encoded_values": [],
+  "controlled_vocabulary": [
+    {
+      "source": "UMLS",
+      "version": "2019AA",
+      "id": "C0942474"
+    }
+  ],
+  "harmonization_units": [
+    {
+      "name": "Amish",
+      "component_study_variables": ["phs000956.v2.pht005002.v1.phv00252976.v1", "phs000956.v2.pht005002.v1.phv00253009.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list) {\n\n   source_data <- phen_list$source_data\n   # platelet_ncnc_bld units already thousands/microliter\n  dataset <- source_data[[\"pht005002\"]]\n  dataset$platelet_count_baseline <- as.integer(dataset$platelet_count_baseline)\n  names(dataset)[names(dataset) %in% \"platelet_count_baseline\"] <- \"platelet_ncnc_bld\"\n\n   # age - winsorize at 90\n   dataset$age_baseline[dataset$age_baseline %in% \"90+\"] <- 90\n   dataset$age_baseline <- as.numeric(dataset$age_baseline)\n   names(dataset)[names(dataset) %in% \"age_baseline\"] <- \"age\"\n\n   # subset to non-missing values\n  sel <- !is.na(dataset$age) & !is.na(dataset$platelet_ncnc_bld)\n  dataset <- dataset[sel, ]\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "ARIC",
+      "component_study_variables": ["phs000280.v4.pht004062.v2.phv00204623.v1", "phs000280.v4.pht004063.v2.phv00204712.v1", "phs000280.v4.pht004064.v2.phv00204871.v1", "phs000280.v4.pht004065.v2.phv00204975.v1", "phs000280.v4.pht004107.v2.phv00207258.v1", "phs000280.v4.pht004108.v2.phv00207273.v1", "phs000280.v4.pht004109.v2.phv00207294.v1", "phs000280.v4.pht004110.v2.phv00207306.v1", "phs000280.v4.pht006422.v1.phv00294958.v1", "phs000280.v4.pht006431.v1.phv00295623.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n    # Age at visit\n    dem1 <- phen_list$source_data[[\"pht004063\"]] %>%\n        mutate(visit = 1, age = as.numeric(V1AGE01))\n    dem2 <- phen_list$source_data[[\"pht004062\"]] %>%\n        mutate(visit = 2, age = as.numeric(V2AGE22))\n    dem3 <- phen_list$source_data[[\"pht004064\"]] %>%\n        mutate(visit = 3, age = as.numeric(V3AGE31))\n    dem4 <- phen_list$source_data[[\"pht004065\"]] %>%\n        mutate(visit = 4, age = as.numeric(V4AGE41))\n    dem5 <- phen_list$source_data[[\"pht006431\"]] %>%\n        mutate(visit  = 5, age = as.numeric(AGE_STAGE_1))\n\n    dem <- list(dem1, dem2, dem3, dem4, dem5) %>%\n        lapply(select, topmed_subject_id, visit, age) %>%\n        do.call(rbind, .) %>%\n        tbl_df %>%\n        filter(!is.na(visit) & !is.na(age))\n\n    # Platelet count (thousands/microliter)\n    # get platelet data for each visit, eliminate subjects with missing codes\n    blood1 <- phen_list$source_data[[\"pht004107\"]] %>%\n        filter(!(HMTA04 %in% c(\"A\", \"O\")) ) %>%\n        mutate(visit = 1, platelet_ncnc_bld = as.numeric(HMTA04))\n    blood2 <- phen_list$source_data[[\"pht004108\"]] %>%\n        filter(!(HMTB04 %in% c(\"A\", \"O\")) ) %>%\n        mutate(visit = 2, platelet_ncnc_bld = as.numeric(HMTB04))\n    blood3 <- phen_list$source_data[[\"pht004109\"]] %>%\n        filter(!(HMTC10 %in% c(\"A\", \"O\")) ) %>%\n        mutate(visit = 3, platelet_ncnc_bld = as.numeric(HMTC10))\n    blood4 <- phen_list$source_data[[\"pht004110\"]] %>%\n        filter(!(HMTC10 %in% c(\"A\", \"O\")) ) %>%\n        mutate(visit = 4, platelet_ncnc_bld = as.numeric(HMTC10))\n    blood5 <- phen_list$source_data[[\"pht006422\"]] %>%\n        filter(!(CBC7 %in% c(\"A\", \"O\")) ) %>%\n        mutate(visit = 5, platelet_ncnc_bld = as.numeric(CBC7))\n\n    blood <- list(blood1, blood2, blood3, blood4, blood5) %>%\n        lapply(select, topmed_subject_id, visit, platelet_ncnc_bld) %>%\n        lapply(na.omit)\n\n    blood %<>% do.call(rbind, .)\n\n    dataset <- left_join(blood, dem, c(\"topmed_subject_id\", \"visit\"))\n\n    # Successively select from visit with most observations for additional subjects\n    datafnl <- NULL\n    while (nrow(dataset) > 0){\n     # create table of number of subjects per visit\n      tb <- dataset %>% group_by(visit) %>%\n            summarise(count = n())\n     # order the table in decreasing order, choose the top visit (most subjects)\n      tb <- tb[order(tb$count, decreasing = TRUE), ]\n      v <- tb %>% slice(1) %>% select(visit)\n      v <- as.numeric(v)\n     # select subjects with that visit\n      tmp <- dataset %>% filter(visit == v)\n      datafnl <- rbind(datafnl, tmp)\n     # remove chosen set of subjects and repeat the process with remaining subjects\n      dataset <- anti_join(dataset, tmp, by = \"topmed_subject_id\")\n    }\n   datafnl <- datafnl %>% select(topmed_subject_id, platelet_ncnc_bld, age) %>% na.omit\n   return(datafnl)\n}\n"
+    },
+    {
+      "name": "CARDIA",
+      "component_study_variables": ["phs000285.v3.pht001559.v2.phv00112439.v2", "phs000285.v3.pht001563.v2.phv00112690.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n    # Age at measurement (Exam 1)\n    dat1 <- phen_list$source_data[[\"pht001559\"]] %>%\n        tbl_df() %>%\n        transmute(topmed_subject_id, age = as.numeric(A01AGE2))\n\n    # Platelet count at Exam 1\n    # eliminate subjects with missing code \"M\"\n    # need to convert to units of thousands/microliter\n    dat2 <- phen_list$source_data[[\"pht001563\"]] %>%\n        tbl_df() %>% filter(!(A05PLATL %in% \"M\")) %>%\n        transmute(topmed_subject_id, platelet_ncnc_bld = as.numeric(A05PLATL) * 100)\n\n    dataset <- left_join(dat2, dat1, by = \"topmed_subject_id\") %>%\n        select(topmed_subject_id, platelet_ncnc_bld, age) %>% na.omit()\n\n    return(dataset)\n}\n"
+    },
+    {
+      "name": "CHS",
+      "component_study_variables": ["phs000287.v6.pht001452.v1.phv00100414.v1", "phs000287.v6.pht001452.v1.phv00100487.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n    # Age at baseline and platelet count (cells X 10^3 / uL)\n    dataset <- phen_list$source_data[[\"pht001452\"]] %>%\n        tbl_df %>%\n        mutate(platelet_ncnc_bld = as.integer(PLATE23),\n            age = as.integer(AGEBL)) %>%\n        select(topmed_subject_id, age, platelet_ncnc_bld) %>% na.omit\n\n    return(dataset)\n}\n"
+    },
+    {
+      "name": "FHS_Gen3NOSOmni2",
+      "component_study_variables": ["phs000007.v29.pht002889.v2.phv00172186.v2", "phs000007.v29.pht003099.v4.phv00177932.v4"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list) {\n  library(\"dplyr\")\n\n   source_data <- phen_list$source_data\n   # platelet\n  dataset1 <- source_data[[\"pht002889\"]]\n  dataset1$PLT <- as.integer(dataset1$PLT)\n  names(dataset1)[names(dataset1) %in% \"PLT\"] <- \"platelet_ncnc_bld\"\n\n  # age\n  dataset2 <- source_data[[\"pht003099\"]]\n  dataset2$age2 <- as.numeric(dataset2$age2)\n  names(dataset2)[names(dataset2) %in% \"age2\"] <- \"age\"\n\n  # combine\n  dataset <- inner_join(dataset1, dataset2)\n\n  # subset to non-missing values\n  sel <- !is.na(dataset$age) & !is.na(dataset$platelet_ncnc_bld)\n  dataset <- dataset[sel, ]\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "FHS_Offspring",
+      "component_study_variables": ["phs000007.v29.pht003099.v4.phv00177946.v4", "phs000007.v29.pht004802.v1.phv00227024.v1", "phs000007.v29.pht004802.v1.phv00227033.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list) {\n  library(\"dplyr\")\n\n  source_data <- phen_list$source_data\n   # platelet\n  dataset1 <- source_data[[\"pht004802\"]]\n    # subset to Offspring\n  dataset1 <- dataset1[dataset1$IDTYPE %in% 1, ]\n  dataset1$IDTYPE <- NULL\n\n  dataset1$PLT <- as.integer(dataset1$PLT)\n  names(dataset1)[names(dataset1) %in% \"PLT\"] <- \"platelet_ncnc_bld\"\n\n  # age\n  dataset2 <- source_data[[\"pht003099\"]]\n  dataset2$age9 <- as.numeric(dataset2$age9)\n  names(dataset2)[names(dataset2) %in% \"age9\"] <- \"age\"\n\n  # combine\n  dataset <- inner_join(dataset1, dataset2)\n\n  # subset to non-missing values\n  sel <- !is.na(dataset$age) & !is.na(dataset$platelet_ncnc_bld)\n  dataset <- dataset[sel, ]\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "FHS_Omni1",
+      "component_study_variables": ["phs000007.v29.pht003099.v4.phv00177936.v4", "phs000007.v29.pht004802.v1.phv00227024.v1", "phs000007.v29.pht004802.v1.phv00227033.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list) {\n  library(\"dplyr\")\n\n  source_data <- phen_list$source_data\n   # platelet\n  dataset1 <- source_data[[\"pht004802\"]]\n  # choose Omni1 cohort\n  dataset1 <- dataset1[dataset1$IDTYPE %in% 7, ]\n\n  dataset1$PLT <- as.integer(dataset1$PLT)\n  names(dataset1)[names(dataset1) %in% \"PLT\"] <- \"platelet_ncnc_bld\"\n  dataset1$IDTYPE <- NULL\n\n  # age\n  dataset2 <- source_data[[\"pht003099\"]]\n  dataset2$age4 <- as.numeric(dataset2$age4)\n  names(dataset2)[names(dataset2) %in% \"age4\"] <- \"age\"\n\n  # combine\n  dataset <- inner_join(dataset1, dataset2)\n\n  # subset to non-missing values\n  sel <- !is.na(dataset$age) & !is.na(dataset$platelet_ncnc_bld)\n  dataset <- dataset[sel, ]\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "HCHS_SOL",
+      "component_study_variables": ["phs000810.v1.pht004715.v1.phv00226251.v1", "phs000810.v1.pht004715.v1.phv00226310.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n    # Platelet count(thousands/microliter) and age at measurement\n\n    dataset <- phen_list$source_data[[\"pht004715\"]] %>%\n        tbl_df %>%\n        mutate(platelet_ncnc_bld = as.numeric(LABA9),\n            age = as.integer(AGE)) %>%\n        select(topmed_subject_id, age, platelet_ncnc_bld) %>%\n        filter(!is.na(age), !is.na(platelet_ncnc_bld))\n\n    return(dataset)\n}\n"
+    },
+    {
+      "name": "JHS",
+      "component_study_variables": ["phs000286.v5.pht001949.v1.phv00126009.v1", "phs000286.v5.pht001959.v1.phv00127616.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list) {\n  library(\"dplyr\")\n\n  source_data <- phen_list$source_data\n  # platelet_ncnc_bld\n  dataset1 <- source_data[[\"pht001959\"]]\n  dataset1$PLATELET <- as.integer(dataset1$PLATELET)\n  names(dataset1)[names(dataset1) %in% \"PLATELET\"] <- \"platelet_ncnc_bld\"\n\n  # age\n  dataset2 <- source_data[[\"pht001949\"]]\n  dataset2$AGE01 <- as.numeric(dataset2$AGE01)\n  names(dataset2)[names(dataset2) %in% \"AGE01\"] <- \"age\"\n\n  # combine\n  dataset <- inner_join(dataset1, dataset2)\n\n  # subset to non-missing values\n  sel <- !is.na(dataset$age) & !is.na(dataset$platelet_ncnc_bld)\n  dataset <- dataset[sel, ]\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "MESA",
+      "component_study_variables": ["phs000209.v13.pht003091.v3.phv00176011.v1", "phs000209.v13.pht004319.v1.phv00218991.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n    library(magrittr)\n    # Age at Exam 5\n    dataset_dem <- phen_list$source_data[[\"pht003091\"]] %>%\n        tbl_df %>%\n        transmute(topmed_subject_id, age = as.integer(age5c))\n\n    # Platelets at Exam 5 (cells x 10^3 / uL)\n    dataset_blood <- phen_list$source_data[[\"pht004319\"]] %>%\n        tbl_df() %>%\n        transmute(topmed_subject_id, platelet_ncnc_bld = as.integer(plt5))\n\n    dataset <- inner_join(dataset_dem, dataset_blood, by = \"topmed_subject_id\") %>%\n        na.omit()\n\n    return(dataset)\n}\n"
+    },
+    {
+      "name": "WHI",
+      "component_study_variables": ["phs000200.v11.pht000986.v6.phv00077362.v6", "phs000200.v11.pht000986.v6.phv00077363.v6", "phs000200.v11.pht000986.v6.phv00077367.v6", "phs000200.v11.pht000998.v6.phv00078436.v6", "phs000200.v11.pht000998.v6.phv00078437.v6"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n    # Platelets (thousands/microliter) and age at measurement\n    dataset <- phen_list$source_data[[\"pht000986\"]] %>%\n        # Age\n        left_join(phen_list$source_data[[\"pht000998\"]], by = \"topmed_subject_id\") %>%\n\n        # AGE is measured at screening on form F2.\n        # abs(F2DAYS) is days between screening and enrollment.\n        # do not use F2DAYS when F2DAYS > 0\n        # CBCDAYS is days from enrollment to trait measurement\n        mutate(F2DAYS = ifelse(as.integer(F2DAYS) > 0, 0, F2DAYS)) %>%\n        mutate(platelet_ncnc_bld = as.integer(PLATELET),\n            age = as.integer(AGE) +\n                (as.integer(CBCDAYS) + abs(as.integer(F2DAYS))) / 365.25) %>%\n        select(topmed_subject_id,\n               age, CBCVY,\n              platelet_ncnc_bld) %>%\n                # Use year 0 measurement.\n        filter(CBCVY %in% 0 & !is.na(platelet_ncnc_bld) & !is.na(age)) %>%\n        select(topmed_subject_id, age, platelet_ncnc_bld)\n\n    return(dataset)\n}\n"
+    }
+  ]
+}

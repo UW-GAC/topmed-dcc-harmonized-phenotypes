@@ -1,0 +1,95 @@
+{
+  "name": "hdl_1",
+  "phenotype_concept": "hdl",
+  "concept_variant": 1,
+  "description": "Blood mass concentration of high-density lipoprotein cholesterol",
+  "version": 3,
+  "dcc_harmonization_id": 123,
+  "data_type": "decimal",
+  "measurement_units": "mg/dL",
+  "has_age_variable": true,
+  "date_harmonized": "2018-12-12 15:49:25",
+  "dcc_harmonization_comments": "This variable was harmonized by converting component study variables to the\nappropriate unit of measure as needed.\n\n#### FHS\n\nDCC analysts could not confirm that data from the Original cohort available in\ndbGaP should be used for harmonization, and they are not included.\n\n#### Assays and measurement\n\nLipids were measured in a number of different methods across studies:\n\n| study | method |\n|-------|--------|\n| Amish | serum |\n| ARIC | plasma |\n| CARDIA | plasma |\n| CFS | plasma |\n| CHS | plasma |\n| FHS | plasma |\n| GENOA | serum |\n| HCHS/SOL | serum |\n| JHS | serum |\n| MESA | plasma |\n| SAS | serum |\n\n",
+  "encoded_values": [],
+  "controlled_vocabulary": [
+    {
+      "source": "UMLS",
+      "version": "2019AA",
+      "id": "C2603387"
+    }
+  ],
+  "harmonization_units": [
+    {
+      "name": "Amish",
+      "component_study_variables": ["phs000956.v2.pht005002.v1.phv00252976.v1", "phs000956.v2.pht005002.v1.phv00253018.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Get dataset and rename variables.\n  dataset <- phen_list$source_data$pht005002 %>%\n    rename(age = age_baseline, hdl = hdl_baseline)\n\n  # Substitute the winsorized age value of '90+' to a numeric value 90.\n  dataset$age[dataset$age %in% '90+'] <- 90\n\n  # Substitute the value of 'NA' to missing.\n  dataset$age[dataset$age %in% 'NA'] <- NA\n  dataset$hdl[dataset$hdl %in% 'NA'] <- NA\n\n  # Remove records with NAs from dataset.\n  dataset <- dataset[!is.na(dataset$age) & !is.na(dataset$hdl), ]\n\n  # Convert character values to numeric.\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "ARIC",
+      "component_study_variables": ["phs000280.v4.pht004063.v2.phv00204712.v1", "phs000280.v4.pht004063.v2.phv00204761.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  phen_list$source_data$pht004063 %>%\n    rename(age = V1AGE01, hdl = HDL01) %>%\n    # Convert character values to numeric\n    mutate_if(is.character, as.numeric) %>%\n    # Exclude records with NAs\n    na.omit() %>%\n    return()\n}\n"
+    },
+    {
+      "name": "CARDIA",
+      "component_study_variables": ["phs000285.v3.pht001559.v2.phv00112439.v2", "phs000285.v3.pht001588.v2.phv00113702.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  source_data <- phen_list$source_data\n  # Join lipids data with age data.\n  dat <- full_join(source_data$pht001559, source_data$pht001588, \"topmed_subject_id\") %>%\n    # Rename variables and convert to numeric.\n    transmute(topmed_subject_id, age = as.numeric(A01AGE2), hdl = as.numeric(AL1HDL)) %>%\n    # Exclude rows with missing data.\n    na.omit()\n  return(dat)\n}\n"
+    },
+    {
+      "name": "CFS",
+      "component_study_variables": ["phs000284.v1.pht001902.v1.phv00122012.v1", "phs000284.v1.pht001902.v1.phv00122015.v1", "phs000284.v1.pht001902.v1.phv00123968.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  phen_list$source_data$pht001902 %>%\n    # Convert character vectors to numeric\n    mutate_if(is.character, as.numeric) %>%\n    # Subset to visit 5\n    filter(visit == 5) %>%\n    # Select only necessary variables\n    select(topmed_subject_id, age, hdl) %>%\n    na.omit() %>%\n    return()\n}\n"
+    },
+    {
+      "name": "CHS",
+      "component_study_variables": ["phs000287.v6.pht001452.v1.phv00100426.v1", "phs000287.v6.pht001452.v1.phv00100487.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  source_data <- phen_list$source_data\n  source_data$pht001452 %>% rename(age = AGEBL, hdl = HDL44) %>%\n    # Convert character values to numeric\n    mutate_if(is.character, as.numeric) %>%\n    # Exclude incomplete records\n    na.omit() %>%\n    return()\n}\n"
+    },
+    {
+      "name": "FHS_Gen3_NewOffspringSpouse_Omni2",
+      "component_study_variables": ["phs000007.v29.pht006026.v1.phv00277020.v1", "phs000007.v29.pht006026.v1.phv00277040.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  dataset <- phen_list$source_data$pht006026 %>%\n    # Convert character vectors to numeric.\n    mutate_if(is.character, as.numeric) %>%\n    # Rename age and HDL variables.\n    select(topmed_subject_id, age = AGE1, hdl = HDL1) %>%\n    # Exclude rows with missing data.\n    na.omit()\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "FHS_Offspring",
+      "component_study_variables": ["phs000007.v29.pht006027.v1.phv00277077.v1", "phs000007.v29.pht006027.v1.phv00277162.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  dataset <- phen_list$source_data$pht006027 %>%\n    # Convert character vectors to numeric.\n    mutate_if(is.character, as.numeric) %>%\n    # Rename age and HDL variables.\n    select(topmed_subject_id, age = AGE1, hdl = HDL1) %>%\n    # Exclude rows with missing data.\n    na.omit()\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "GENOA",
+      "component_study_variables": ["phs001238.v1.pht006039.v1.phv00277507.v1", "phs001238.v1.pht006041.v1.phv00277575.v1", "phs001238.v1.pht006653.v1.phv00307788.v1", "phs001238.v1.pht006655.v1.phv00307856.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Get dataset.\n  source_data <- phen_list$source_data\n  data_aa <- inner_join(source_data$pht006039,\n                        source_data$pht006041,\n                        by = \"topmed_subject_id\")\n  data_ea <- inner_join(source_data$pht006653,\n                        source_data$pht006655,\n                        by = \"topmed_subject_id\")\n  dataset <- union(data_aa, data_ea)\n\n  # Rename variables.\n  dataset <- rename(dataset, age = AGE, hdl = HDL)\n\n  # Substitute the value of 'NA' to missing.\n  dataset$hdl[dataset$hdl %in% 'NA'] <- NA\n  dataset$age[dataset$age %in% 'NA'] <- NA\n\n  # Remove records with NAs from dataset.\n  dataset <- dataset[!is.na(dataset$age) & !is.na(dataset$hdl), ]\n\n  # Convert character values to numeric.\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "HCHS_SOL",
+      "component_study_variables": ["phs000810.v1.pht004715.v1.phv00226251.v1", "phs000810.v1.pht004715.v1.phv00253239.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  # Rename and convert variables to numeric.\n  dat <- transmute(phen_list$source_data$pht004715, topmed_subject_id,\n                   age = as.numeric(AGE), hdl = as.numeric(LABA68)) %>%\n    # Exclude rows with missing data\n    na.omit()\n  return(dat)\n}\n"
+    },
+    {
+      "name": "JHS",
+      "component_study_variables": ["phs000286.v5.pht001945.v1.phv00125930.v1", "phs000286.v5.pht001949.v1.phv00126009.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Get dataset and rename variables.\n  source_data <- phen_list$source_data\n  dataset <- inner_join(source_data$pht001949,\n                        source_data$pht001945,\n                        by = \"topmed_subject_id\") %>%\n    rename(age = AGE01, hdl = HDLC)\n\n  # Substitute the value of 'NA' to missing.\n  dataset$hdl[dataset$hdl %in% 'NA'] <- NA\n\n  # Remove records with NAs from dataset.\n  dataset <- dataset[!is.na(dataset$age) & !is.na(dataset$hdl), ]\n\n  # Convert character values to numeric.\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "MESA",
+      "component_study_variables": ["phs000209.v13.pht001111.v4.phv00082639.v2", "phs000209.v13.pht001111.v4.phv00082952.v1", "phs000209.v13.pht001116.v10.phv00084442.v3", "phs000209.v13.pht001116.v10.phv00084972.v2", "phs000209.v13.pht001121.v3.phv00087071.v1", "phs000209.v13.pht001121.v3.phv00087099.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Get list of dataframes.\n  source_data <- phen_list$source_data\n  # Rename variables in the family exam to match variables in the other dataframes.\n  source_data$pht001121 <- rename(source_data$pht001121, age1c = agefc,\n                                  hdl1 = hdlf)\n  # Bind datasets row-wise.\n  dat <- bind_rows(source_data) %>%\n    # Rename hdl and age variables and convert to numeric.\n    transmute(topmed_subject_id, hdl = as.numeric(hdl1), age = as.numeric(age1c)) %>%\n    na.omit()\n\n  return(dat)\n}\n"
+    },
+    {
+      "name": "SAS",
+      "component_study_variables": ["phs000914.v1.pht005253.v1.phv00258680.v1", "phs000914.v1.pht005253.v1.phv00258743.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  library(magrittr)\n  dataset <- phen_list$source_data$pht005253\n\n  # Set string entries of \"NA\" to NA\n  dataset[which(dataset$HDL_C == \"NA\"), ]$HDL_C <- NA\n\n  # Convert character values to numeric and remove <NA>s from dataset\n  dataset %>% mutate_if(is.character, as.numeric) %>%\n    rename(age = Dec_Age, hdl = HDL_C) %>%\n    na.omit() %>%\n    return()\n}\n"
+    }
+  ]
+}

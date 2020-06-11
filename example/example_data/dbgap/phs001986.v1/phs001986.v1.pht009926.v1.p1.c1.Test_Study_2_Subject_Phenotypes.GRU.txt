@@ -1,0 +1,23 @@
+# Study accession: phs001986.v1.p1
+# Table accession: pht009926.v1.p1.c1
+# Consent group: General Research Use
+# Citation instructions: The study accession (phs001986.v1.p1) is used to cite the study and its data tables and documents. The data in this file should be cited using the accession pht009926.v1.p1.c1.
+# To cite columns of data within this file, please use the variable (phv#) accessions below:
+#
+# 1) the table name and the variable (phv#) accessions below; or
+# 2) you may cite a variable as phv#.v1.p1.c1.
+
+##	phv00427216.v1.p1.c1	phv00427217.v1.p1.c1	phv00427218.v1.p1.c1
+dbGaP_Subject_ID	SUBJECT_ID	height	weight
+3243288	s0463	63	159.22
+3243281	s0179	60	124.66
+3243289	s0526	65	180.13
+3243282	s0195	70	148.2
+3243280	s0118	61	113.56
+3243283	s0229	63	141.8
+3243278	s0014	62	173.66
+3243290	s0602	64	121.21
+3243291	s0603	67	146.33
+3243294	s0768	49	107.56
+3243293	s0709	61	109.67
+3243297	s0953	59	119

@@ -1,0 +1,77 @@
+{
+  "name": "monocyte_ncnc_bld_1",
+  "phenotype_concept": "monocyte_ncnc_bld",
+  "concept_variant": 1,
+  "description": "Count by volume, or number concentration (ncnc), of monocytes in the blood (bld).",
+  "version": 3,
+  "dcc_harmonization_id": 109,
+  "data_type": "decimal",
+  "measurement_units": "thousands / microliter",
+  "has_age_variable": true,
+  "date_harmonized": "2018-09-28 15:23:28",
+  "dcc_harmonization_comments": "When possible, monocyte count was derived from percentage (%) of monocytes in the total white blood cell count (WBC) , using the formula\n```\nwhite blood cell count * % monocytes / 100.\n```\nThis choice minimizes discretizing round-off effects which can lead to multi-modal distributions. Otherwise, if percentage was not available, the value of monocyte count as provided by the study was used directly.\n\nFor studies or cohorts with measurements at more than one visit, in order to maximize sample \nsize, one measurement per subject was selected, rather than choosing the same visit for all subjects. This was done on a trait-by-trait basis. The algorithm for choosing a visit for a subject differed by study.  The counts were first derived as above using data from each visit and then a visit for a given subject was selected. \n\n### Study-specific comments\n\n#### Amish\nBecause percentage data was not available, harmonization used given count values from a study component variable rescaled to appropriate harmonized units.\n\nSubjects with age recorded as 90+ were assigned a harmonized age of 90.\n\n#### ARIC\nThe visit with the most non-missing phenotype values was chosen first. For subjects without measurements at this visit, the visit with the next most non-missing values was chosen, and so forth in succession. \n\n#### MESA\nBecause percentage data was not available, harmonization used given count values from a study component variable. \n\n### QC checks\nFor each subject, the sum of the WBC subtype differential counts (percentages) was compared to the total white blood cell count (100%) . \n\nFor *_FHS_* Offspring, this QC led to the discovery of anomalies (unusual number of values recorded as 0) in the data at Exam 2 for the WBC subtype differentials. After communication with *_FHS_*, the decision was made to not use the Exam 2 data. \n\nFor other studies, there was a small percentage of subjects for which the comparison showed a relative error greater than 5%.  No data were removed based on these observations.\n\nPlease note that visit selection to maximize sample size introduced the possibility that related _harmonized_ hematology variables may be measured at different visits for a given subject. For example, for any given subject, the _harmonized_ values for WBC, monocytes, and other WBC subtype differentials may not be from the same visit, so the harmonized subtype differential counts may not sum to the WBC count.\n",
+  "encoded_values": [],
+  "controlled_vocabulary": [
+    {
+      "source": "UMLS",
+      "version": "2019AA",
+      "id": "C0942446"
+    }
+  ],
+  "harmonization_units": [
+    {
+      "name": "Amish",
+      "component_study_variables": ["phs000956.v2.pht005002.v1.phv00252976.v1", "phs000956.v2.pht005002.v1.phv00253012.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list) {\n\n  source_data <- phen_list$source_data\n   # monocyte_ncnc_bld units in cells/microliter - we want thousands/microliter - 10^9 cells/liter\n  dataset <- source_data[[\"pht005002\"]]\n  dataset$monocytes_baseline <- as.numeric(dataset$monocytes_baseline)\n  names(dataset)[names(dataset) %in% \"monocytes_baseline\"] <- \"monocyte_ncnc_bld\"\n  dataset$monocyte_ncnc_bld <- dataset$monocyte_ncnc_bld / 1000\n\n   # age - winsorize at 90\n   dataset$age_baseline[dataset$age_baseline %in% \"90+\"] <- 90\n   dataset$age_baseline <- as.numeric(dataset$age_baseline)\n   names(dataset)[names(dataset) %in% \"age_baseline\"] <- \"age\"\n\n   # subset to non-missing values\n  sel <- !is.na(dataset$age) & !is.na(dataset$monocyte_ncnc_bld)\n  dataset <- dataset[sel, ]\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "ARIC",
+      "component_study_variables": ["phs000280.v4.pht004062.v2.phv00204623.v1", "phs000280.v4.pht004063.v2.phv00204712.v1", "phs000280.v4.pht004107.v2.phv00207257.v1", "phs000280.v4.pht004107.v2.phv00207262.v1", "phs000280.v4.pht004108.v2.phv00207272.v1", "phs000280.v4.pht004108.v2.phv00207277.v1", "phs000280.v4.pht006422.v1.phv00294954.v1", "phs000280.v4.pht006422.v1.phv00294965.v1", "phs000280.v4.pht006431.v1.phv00295623.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n    # Monocyte, converted from % leukocytes to count of thousands/microliter\n    # Study component variables available only in visits 1, 2, and 5\n\n    # Age at visit\n    dem1 <- phen_list$source_data[[\"pht004063\"]] %>%\n        mutate(visit = 1, age = as.integer(V1AGE01))\n    dem2 <- phen_list$source_data[[\"pht004062\"]] %>%\n        mutate(visit = 2, age = as.integer(V2AGE22))\n    dem5 <- phen_list$source_data[[\"pht006431\"]] %>%\n        mutate(visit  = 5, age = as.numeric(AGE_STAGE_1))\n    dem <- list(dem1, dem2, dem5) %>%\n        lapply(select, topmed_subject_id, visit, age) %>%\n        do.call(rbind, .) %>%\n        tbl_df %>%\n        filter(!is.na(visit) & !is.na(age))\n\n    # obtain monocyte % and WBC data, eliminate subjects with missing codes\n    blood1 <- phen_list$source_data[[\"pht004107\"]] %>%\n        filter(!(HMTA08 %in% c(\"A\", \"O\")) & !(HMTA03 %in% c(\"A\", \"O\"))) %>%\n        mutate(visit = 1,\n            monocyte_ncnc_bld = as.numeric(HMTA08),\n            wbc_ncnc_bld = as.numeric(HMTA03))\n    blood2 <- phen_list$source_data[[\"pht004108\"]] %>%\n        filter(!(HMTB08 %in% c(\"A\", \"O\")) & !(HMTB03 %in% c(\"A\", \"O\"))) %>%\n        mutate(visit = 2,\n            monocyte_ncnc_bld = as.numeric(HMTB08),\n            wbc_ncnc_bld = as.numeric(HMTB03))\n    blood5 <- phen_list$source_data[[\"pht006422\"]] %>%\n        filter(!(CBC14 %in% c(\"A\", \"O\")) & !(CBC3 %in% c(\"A\", \"O\"))) %>%\n        mutate(visit = 5,\n            monocyte_ncnc_bld = as.numeric(CBC14),\n            wbc_ncnc_bld = as.numeric(CBC3))\n\n    blood <- list(blood1, blood2, blood5)\n    for (i in seq_along(blood)){\n        blood[[i]] %<>%\n            tbl_df() %>%\n            select(topmed_subject_id, visit, monocyte_ncnc_bld, wbc_ncnc_bld) %>%\n            na.omit() %>%\n            mutate(monocyte_ncnc_bld = monocyte_ncnc_bld * wbc_ncnc_bld / 100) %>%\n            select(-wbc_ncnc_bld)\n    }\n\n    blood %<>% do.call(rbind, .)\n\n    dataset <- left_join(blood, dem, c(\"topmed_subject_id\", \"visit\"))\n\n    # Successively select from visit with most observations for additional subjects\n    datafnl <- NULL\n    while (nrow(dataset) > 0){\n     # create table of number of subjects per visit\n      tb <- dataset %>% group_by(visit) %>%\n            summarise(count = n())\n     # order the table in decreasing order, choose the top visit (most subjects)\n      tb <- tb[order(tb$count, decreasing = TRUE), ]\n      v <- tb %>% slice(1) %>% select(visit)\n      v <- as.numeric(v)\n     # select subjects with that visit\n      tmp <- dataset %>% filter(visit == v)\n      datafnl <- rbind(datafnl, tmp)\n     # remove chosen set of subjects and repeat the process with remaining subjects\n      dataset <- anti_join(dataset, tmp, by = \"topmed_subject_id\")\n    }\n   datafnl <- datafnl %>% select(topmed_subject_id, monocyte_ncnc_bld, age) %>% na.omit\n   return(datafnl)\n}\n"
+    },
+    {
+      "name": "CARDIA",
+      "component_study_variables": ["phs000285.v3.pht001559.v2.phv00112439.v2", "phs000285.v3.pht001563.v2.phv00112686.v2", "phs000285.v3.pht001563.v2.phv00112692.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n    # Age at measurement (Exam 1)\n    dat1 <- phen_list$source_data[[\"pht001559\"]] %>%\n        tbl_df() %>%\n        transmute(topmed_subject_id, age = as.numeric(A01AGE2))\n\n    # Monocyte count at Exam 1 (thousands/microliter)\n    # eliminate subjects with missing code \"M\"\n    # derive count from total WBC (A05WBC) and % monocytes (A05MONO)\n\n    dat2 <- phen_list$source_data[[\"pht001563\"]] %>%\n        tbl_df() %>% filter(!(A05MONO %in% \"M\") & !(A05WBC %in% \"M\")) %>%\n        mutate(monocyte_ncnc_bld = as.numeric(A05WBC) * as.numeric(A05MONO) / 100)\n\n    dataset <- left_join(dat2, dat1, by = \"topmed_subject_id\") %>%\n        select(topmed_subject_id, monocyte_ncnc_bld, age) %>% na.omit()\n\n    return(dataset)\n}\n"
+    },
+    {
+      "name": "FHS_Gen3NOSOmni2",
+      "component_study_variables": ["phs000007.v29.pht002889.v2.phv00172178.v2", "phs000007.v29.pht002889.v2.phv00172190.v2", "phs000007.v29.pht003099.v4.phv00177932.v4"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list) {\n  library(\"dplyr\")\n\n  source_data <- phen_list$source_data\n   # monocyte\n  dataset1 <- source_data[[\"pht002889\"]]\n  dataset1$MO_PER <- as.numeric(dataset1$MO_PER)\n  dataset1$WBC <- as.numeric(dataset1$WBC)\n  dataset1$monocyte_ncnc_bld <- dataset1$WBC * dataset1$MO_PER / 100\n  dataset1$MO_PER <- NULL\n  dataset1$WBC <- NULL\n\n  # age\n  dataset2 <- source_data[[\"pht003099\"]]\n  dataset2$age2 <- as.numeric(dataset2$age2)\n  names(dataset2)[names(dataset2) %in% \"age2\"] <- \"age\"\n\n  # combine\n  dataset <- inner_join(dataset1, dataset2)\n\n  # subset to non-missing values\n  sel <- !is.na(dataset$age) & !is.na(dataset$monocyte_ncnc_bld)\n  dataset <- dataset[sel, ]\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "FHS_Offspring",
+      "component_study_variables": ["phs000007.v29.pht003099.v4.phv00177946.v4", "phs000007.v29.pht004802.v1.phv00227024.v1", "phs000007.v29.pht004802.v1.phv00227025.v1", "phs000007.v29.pht004802.v1.phv00227037.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list) {\n  library(\"dplyr\")\n\n   source_data <- phen_list$source_data\n   # monocyte\n  dataset1 <- source_data[[\"pht004802\"]]\n    # subset to Offspring\n  dataset1 <- dataset1[dataset1$IDTYPE %in% 1, ]\n  dataset1$IDTYPE <- NULL\n\n  dataset1$MO_PER <- as.numeric(dataset1$MO_PER)\n  dataset1$WBC <- as.numeric(dataset1$WBC)\n  dataset1$monocyte_ncnc_bld <- dataset1$WBC * dataset1$MO_PER / 100\n  dataset1$MO_PER <- NULL\n  dataset1$WBC <- NULL\n\n  # age\n  dataset2 <- source_data[[\"pht003099\"]]\n  dataset2$age9 <- as.numeric(dataset2$age9)\n  names(dataset2)[names(dataset2) %in% \"age9\"] <- \"age\"\n\n  # combine\n  dataset <- inner_join(dataset1, dataset2)\n\n  # subset to non-missing values\n  sel <- !is.na(dataset$age) & !is.na(dataset$monocyte_ncnc_bld)\n  dataset <- dataset[sel, ]\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "FHS_Omni1",
+      "component_study_variables": ["phs000007.v29.pht003099.v4.phv00177936.v4", "phs000007.v29.pht004802.v1.phv00227024.v1", "phs000007.v29.pht004802.v1.phv00227025.v1", "phs000007.v29.pht004802.v1.phv00227037.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list) {\n  library(\"dplyr\")\n\n  source_data <- phen_list$source_data\n   # monocyte\n  dataset1 <- source_data[[\"pht004802\"]]\n    # subset to Omni1\n  dataset1 <- dataset1[dataset1$IDTYPE %in% 7, ]\n  dataset1$IDTYPE <- NULL\n\n  dataset1$MO_PER <- as.numeric(dataset1$MO_PER)\n  dataset1$WBC <- as.numeric(dataset1$WBC)\n  dataset1$monocyte_ncnc_bld <- dataset1$WBC * dataset1$MO_PER / 100\n  dataset1$MO_PER <- NULL\n  dataset1$WBC <- NULL\n\n  # age\n  dataset2 <- source_data[[\"pht003099\"]]\n  dataset2$age4 <- as.numeric(dataset2$age4)\n  names(dataset2)[names(dataset2) %in% \"age4\"] <- \"age\"\n\n  # combine\n  dataset <- inner_join(dataset1, dataset2)\n\n  # subset to non-missing values\n  sel <- !is.na(dataset$age) & !is.na(dataset$monocyte_ncnc_bld)\n  dataset <- dataset[sel, ]\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "HCHS_SOL",
+      "component_study_variables": ["phs000810.v1.pht004715.v1.phv00226251.v1", "phs000810.v1.pht004715.v1.phv00226283.v1", "phs000810.v1.pht004715.v1.phv00226286.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n    # Monocytes (thousands/microliter) and age at measurement\n    # derive count from total WBC (LABA1) and % monocytes (LABA12)\n    dataset <- phen_list$source_data[[\"pht004715\"]] %>%\n        tbl_df %>%\n        mutate(monocyte_ncnc_bld = as.numeric(LABA1) * as.numeric(LABA12) / 100,\n            age = as.integer(AGE)) %>%\n        select(topmed_subject_id, age, monocyte_ncnc_bld) %>%\n        filter(!is.na(age), !is.na(monocyte_ncnc_bld))\n\n    return(dataset)\n}\n"
+    },
+    {
+      "name": "JHS",
+      "component_study_variables": ["phs000286.v5.pht001949.v1.phv00126009.v1", "phs000286.v5.pht001959.v1.phv00127626.v1", "phs000286.v5.pht001959.v1.phv00127631.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list) {\n  library(\"dplyr\")\n\n  source_data <- phen_list$source_data\n  # monocyte_count\n  dataset1 <- source_data[[\"pht001959\"]]\n  dataset1$WBC <- as.numeric(dataset1$WBC)\n  dataset1$MONOS <- as.numeric(dataset1$MONOS)\n  sel <- !is.na(dataset1$WBC) & !is.na(dataset1$MONOS)\n  dataset1 <- dataset1[sel, ]\n  dataset1$monocyte_ncnc_bld <- dataset1$WBC * dataset1$MONOS / 100\n  dataset1$WBC <- NULL\n  dataset1$MONOS <- NULL\n\n  # age\n  dataset2 <- source_data[[\"pht001949\"]]\n  dataset2$AGE01 <- as.numeric(dataset2$AGE01)\n  names(dataset2)[names(dataset2) %in% \"AGE01\"] <- \"age\"\n\n  # combine\n  dataset <- inner_join(dataset1, dataset2)\n\n  # subset to non-missing values\n  sel <- !is.na(dataset$age) & !is.na(dataset$monocyte_ncnc_bld)\n  dataset <- dataset[sel, ]\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "MESA",
+      "component_study_variables": ["phs000209.v13.pht003091.v3.phv00176011.v1", "phs000209.v13.pht004319.v1.phv00219000.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n    # Age at Exam 5\n    dataset_dem <- phen_list$source_data[[\"pht003091\"]] %>%\n        tbl_df %>%\n        transmute(topmed_subject_id, age = as.integer(age5c))\n\n    # Monocytes (cells x 10^3/uL of blood)\n    wbc <- phen_list$source_data[[\"pht004319\"]] %>%\n        tbl_df %>%\n        mutate(monocyte_ncnc_bld = as.numeric(monosa5)) %>%\n        select(topmed_subject_id, monocyte_ncnc_bld)\n\n    dataset <- inner_join(dataset_dem, wbc, by = \"topmed_subject_id\") %>%\n        na.omit()\n\n    return(dataset)\n}\n"
+    }
+  ]
+}

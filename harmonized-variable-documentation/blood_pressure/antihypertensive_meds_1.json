@@ -1,0 +1,122 @@
+{
+  "name": "antihypertensive_meds_1",
+  "phenotype_concept": "antihypertensive_meds",
+  "concept_variant": 1,
+  "description": "Indicator for use of antihypertensive medication at the time of blood pressure measurement.",
+  "version": 1,
+  "dcc_harmonization_id": 94,
+  "data_type": "encoded",
+  "measurement_units": null,
+  "has_age_variable": true,
+  "date_harmonized": "2018-07-31 12:39:37",
+  "dcc_harmonization_comments": "This variable was defined as a binary indicator for use of antihypertensive medication at the time of blood pressure measurement. When available, binary variables provided by the study were used for harmonization. Otherwise, usage of specific medication classes was used to define the harmonized variable.\n\n#### COPDGene\n\nThere was no study variable to indicate whether a subject was taking antihypertensive medication at the time of blood pressure measurement. Therefore, all *_COPDGene_* subjects have missing values for this harmonized variable. \n\n#### FHS\n\nBecause antihypertensive medication was not recorded before Exam 4 for the Original cohort, antihypertensive medication status from Exam 4 were used for harmonization.\n\n#### GOLDN\n\nThere was no study variable to indicate whether a subject was taking antihypertensive medication at the time of blood pressure measurement. Therefore, all *_GOLDN_* subjects have missing values for this harmonized variable. \n",
+  "encoded_values": [
+    {
+      "code": "0",
+      "value": "Not taking antihypertensive medication"
+    },
+    {
+      "code": "1",
+      "value": "Taking antihypertensive medication"
+    }
+  ],
+  "controlled_vocabulary": [
+    {
+      "source": "UMLS",
+      "version": "2019AA",
+      "id": "C2054151"
+    }
+  ],
+  "harmonization_units": [
+    {
+      "name": "Amish",
+      "component_study_variables": ["phs000956.v2.pht005002.v1.phv00252976.v1", "phs000956.v2.pht005002.v1.phv00252997.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  # Get dataset and rename variables.\n  dataset <- phen_list$source_data$pht005002 %>%\n             rename(age = age_baseline, antihypertensive_meds = htn_med_baseline)\n\n  # Substitute the winsorized age value of '90+' to a numeric value 90.\n  dataset$age[dataset$age %in% '90+'] <- 90\n\n  # Substitute the value of 'NA' to missing.\n  dataset$age[dataset$age %in% 'NA'] <- NA\n  dataset$antihypertensive_meds[dataset$antihypertensive_meds %in% 'NA'] <- NA\n\n  # Convert character values to numeric and remove NAs.\n  dataset <- mutate(dataset, age = as.numeric(age)) %>%\n             na.omit()\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "ARIC",
+      "component_study_variables": ["phs000280.v4.pht004063.v2.phv00204712.v1", "phs000280.v4.pht004063.v2.phv00204754.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n\n  dataset <- phen_list$source_data$pht004063\n\n  # Change missing encoded values to NA.\n  dataset$HYPTMD01[dataset$HYPTMD01 %in% 'NA'] <- NA\n  dataset$HYPTMD01[dataset$HYPTMD01 %in% 'T'] <- NA\n\n  # Rename variables.\n  dataset <- rename(dataset, age = V1AGE01, antihypertensive_meds = HYPTMD01)\n\n  # Convert age variable from character to numeric.\n  dataset <- mutate(dataset, age = as.numeric(age))\n\n  # Remove NAs.\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "CARDIA",
+      "component_study_variables": ["phs000285.v3.pht001569.v2.phv00113012.v2", "phs000285.v3.pht001571.v2.phv00113154.v2", "phs000285.v3.pht001571.v2.phv00113155.v2", "phs000285.v3.pht001645.v2.phv00115119.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  # Get dataset of whether a participant has ever taken antihypertensive meds.\n  med_ever <- phen_list$source_data$pht001569\n\n  # Subset participants who have never taken antihypertensive meds\n  # and assign the encoded value \"0\".\n  med_no <- filter(med_ever, A08BPMED == \"1\") %>%\n            mutate(antihypertensive_meds = 0) %>%\n            select(topmed_subject_id, antihypertensive_meds)\n\n  # Subset participants who have ever taken antihypertensive meds.\n  med_yes <- filter(med_ever, A08BPMED == \"2\")\n\n  # Get dataset of antihypertensive meds status at clinical visit.\n  med_visit <- filter(distinct(phen_list$source_data$pht001571),\n                        A09MDTYP == \"HBP\")\n\n  # Join datasets to determine the meds status of participants who have ever\n  # taken antihypertensive meds at time of clinical visit.\n  med_now <- left_join(med_yes, med_visit, by = \"topmed_subject_id\")\n\n  # Assign encoded values to multiple records of a participant.\n  # Records of taking antihypertensive meds at visit are encoded as \"1\".\n  # Records of a missing value are encoded as \"0.5\".\n  # Records of not taking antihypertensive meds at visit are encoded as \"0\".\n  med_now <- mutate(med_now, med = case_when(A09MDNOW == \"2\" ~ 1,\n                                             A09MDNOW == \"M\" | is.na(A09MDNOW) ~ 0.5,\n                                             A09MDNOW == \"1\" ~ 0))\n\n  # If a participant has any records of \"1\", he/she is identified as taking antihypertensive meds\n  # at visit and get the encoded value \"1\". If a participant has records of both \"0.5\" and \"0\",\n  # he/she is identified as missing meds status at visit and get the encoded value \"0.5\". If a\n  # participant only has records of \"0\", he/she is identified as not taking antihypertensive meds\n  # at visit and get the encoded value \"0\".\n  med_now <- group_by(med_now, topmed_subject_id) %>%\n             mutate(antihypertensive_meds = max(med)) %>%\n             ungroup()\n\n  # Convert the encoded value \"0.5\" to \"NA\" to represent missing meds status.\n  med_now$antihypertensive_meds[med_now$antihypertensive_meds == 0.5] <- NA\n\n  # Filter out unique values.\n  med_now <- distinct(select(med_now, topmed_subject_id, antihypertensive_meds))\n\n  # Combine datasets.\n  dataset <- bind_rows(med_no, med_now)\n\n  # Join with age dataset and rename variable.\n  dataset <- inner_join(dataset,\n                        phen_list$source_data$pht001645,\n                        by = \"topmed_subject_id\") %>%\n             rename(age = EXAMAGE)\n\n  # Convert variable types and remove records with NAs from dataset.\n  dataset <- mutate(dataset,\n                    age = as.numeric(age),\n                    antihypertensive_meds = as.character(antihypertensive_meds)) %>%\n             na.omit()\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "CFS",
+      "component_study_variables": ["phs000284.v1.pht001902.v1.phv00122012.v1", "phs000284.v1.pht001902.v1.phv00122015.v1", "phs000284.v1.pht001902.v1.phv00123029.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  dataset <- phen_list$source_data$pht001902 %>%\n\n  # Rename variables.\n             rename(antihypertensive_meds = xbpmeds) %>%\n\n  # Filter for baseline visit only.\n             filter(visit == 5) %>%\n\n  # Select diastolic blood pressure.\n             select(topmed_subject_id, age, antihypertensive_meds) %>%\n\n  # Remove NAs.\n             na.omit()\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "CHS",
+      "component_study_variables": ["phs000287.v6.pht001452.v1.phv00100487.v1", "phs000287.v6.pht001452.v1.phv00100595.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n\n  dataset <- phen_list$source_data$pht001452\n\n  # Rename age and medication variable.\n  dataset <- rename(dataset, age = AGEBL, antihypertensive_meds = HTNMED06)\n\n  # Remove NAs.\n  dataset <- na.omit(dataset)\n\n  # Return harmonized dataset\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "FHS_Gen3_NOS_Omni2",
+      "component_study_variables": ["phs000007.v29.pht003099.v4.phv00177930.v4", "phs000007.v29.pht006026.v1.phv00277059.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n\n  dataset <- inner_join(phen_list$source_data$pht006026,\n                        phen_list$source_data$pht003099,\n                        by = \"topmed_subject_id\") %>%\n\n    # Rename variables.\n    rename(antihypertensive_meds = HRX1, age = age1) %>%\n\n    # Remove NAs.\n    na.omit()\n\n  # Return harmonized dataset.\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "FHS_Offspring",
+      "component_study_variables": ["phs000007.v29.pht003099.v4.phv00177930.v4", "phs000007.v29.pht006027.v1.phv00277245.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n\n  dataset <- inner_join(phen_list$source_data$pht006027,\n                        phen_list$source_data$pht003099,\n                        by = \"topmed_subject_id\") %>%\n\n    # Rename variables.\n    rename(antihypertensive_meds = HRX1, age = age1) %>%\n\n    # Remove NAs.\n    na.omit()\n\n  # Return harmonized dataset.\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "FHS_Omni1",
+      "component_study_variables": ["phs000007.v29.pht003099.v4.phv00177930.v4", "phs000007.v29.pht004813.v1.phv00250358.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  dataset <- plyr::join_all(phen_list$source_data) %>%\n\n    # Rename variables.\n    rename(antihypertensive_meds = e221, age = age1) %>%\n\n    # Remove NAs.\n    na.omit()\n\n  # Return dataset.\n  return(dataset)\n\n}\n"
+    },
+    {
+      "name": "FHS_Original",
+      "component_study_variables": ["phs000007.v29.pht000009.v2.phv00000705.v1", "phs000007.v29.pht003099.v4.phv00177936.v4"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  dataset <- plyr::join_all(phen_list$source_data) %>%\n\n    # Rename variables.\n    rename(antihypertensive_meds = MF250, age = age4)\n\n  # Recode encoded values to 0 (no) and 1 (yes).\n  dataset[dataset$antihypertensive_meds %in% \"2\", ]$antihypertensive_meds <- \"0\"\n\n  # Remove NAs.\n  dataset <- na.omit(dataset)\n\n  # Return dataset.\n  return(dataset)\n\n}\n"
+    },
+    {
+      "name": "GENOA",
+      "component_study_variables": ["phs001238.v1.pht006039.v1.phv00277507.v1", "phs001238.v1.pht006042.v1.phv00277585.v1", "phs001238.v1.pht006653.v1.phv00307788.v1", "phs001238.v1.pht006656.v1.phv00307866.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  # Get dataset.\n  source_data <- phen_list$source_data\n  data_aa <- inner_join(source_data$pht006039,\n                        source_data$pht006042,\n                        by = \"topmed_subject_id\")\n  data_ea <- inner_join(source_data$pht006653,\n                        source_data$pht006656,\n                        by = \"topmed_subject_id\")\n  dataset <- union(data_aa, data_ea)\n\n  # Rename variables.\n  dataset <- rename(dataset, age = AGE, antihypertensive_meds = meds_HYT)\n\n  # Encode the two-level factor values to binary values.\n  dataset <- mutate_if(dataset, is.factor, as.character)\n  dataset$antihypertensive_meds[dataset$antihypertensive_meds %in% 'NO'] <- 0\n  dataset$antihypertensive_meds[dataset$antihypertensive_meds %in% 'YES'] <- 1\n\n  # Convert variable types and remove records with NAs from dataset.\n  dataset <- mutate(dataset,\n                    age = as.numeric(age),\n                    antihypertensive_meds = as.character(antihypertensive_meds)) %>%\n             na.omit()\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "HCHS_SOL",
+      "component_study_variables": ["phs000810.v1.pht004715.v1.phv00226251.v1", "phs000810.v1.pht004715.v1.phv00226324.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  # Select phenotype dataset.\n  dataset <- phen_list$source_data$pht004715 %>%\n  # Rename variables and convert to appropriate data type.\n             transmute(topmed_subject_id,\n                       antihypertensive_meds = as.character(MED_ANTIHYPERT),\n                       age = as.numeric(AGE)) %>%\n  # Exclude rows with NAs.\n             na.omit()\n  # Return harmonized dataset.\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "JHS",
+      "component_study_variables": ["phs000286.v5.pht001949.v1.phv00126009.v1", "phs000286.v5.pht001949.v1.phv00126038.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  # Get dataset and rename variables.\n  dataset <- phen_list$source_data$pht001949 %>%\n             rename(age = AGE01, antihypertensive_meds = BPM01)\n\n  # Substitute the value of 'X' to missing.\n  dataset$antihypertensive_meds[dataset$antihypertensive_meds %in% 'X'] <- NA\n\n  # Convert variable types and remove records with NAs from dataset.\n  dataset <- mutate(dataset,\n                    age = as.numeric(age),\n                    antihypertensive_meds = as.character(antihypertensive_meds)) %>%\n             na.omit()\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "MESA",
+      "component_study_variables": ["phs000209.v13.pht001111.v4.phv00082639.v2", "phs000209.v13.pht001111.v4.phv00083163.v1", "phs000209.v13.pht001116.v10.phv00084442.v3", "phs000209.v13.pht001116.v10.phv00085324.v2", "phs000209.v13.pht001121.v3.phv00087071.v1", "phs000209.v13.pht001121.v3.phv00087093.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n\n  # Merge pht001111 and pht001116.\n  dataset <- rbind(phen_list$source_data$pht001111, phen_list$source_data$pht001116)\n\n  # Rename variables in pht001121.\n  dataset_21 <- phen_list$source_data$pht001121 %>%\n                rename(age1c = agefc, htnmed1c = htnmedfc)\n\n  # Merge pht001121 with previously merged dataset.\n  dataset <- rbind(dataset, dataset_21)\n\n  # Rename age and medication variable.\n  dataset <- rename(dataset, age = age1c, antihypertensive_meds = htnmed1c)\n\n  # Remove NAs.\n  dataset <- na.omit(dataset)\n\n  # Return harmonized dataset\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "SAS",
+      "component_study_variables": ["phs000914.v1.pht005253.v1.phv00258680.v1", "phs000914.v1.pht005253.v1.phv00258749.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  # Get dataset.\n  dataset <- phen_list$source_data$pht005253 %>%\n  # Rename variables.\n             transmute(topmed_subject_id,\n                       age = Dec_Age,\n                       antihypertensive_meds = na_if(Hyp_meds, \"NA\")) %>%\n             mutate_at(vars(age), funs(as.numeric)) %>%\n  # Remove NAs.\n             na.omit()\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "WHI",
+      "component_study_variables": ["phs000200.v11.pht000998.v6.phv00078436.v6", "phs000200.v11.pht000998.v6.phv00078437.v6", "phs000200.v11.pht001019.v6.phv00079850.v6", "phs000200.v11.pht001019.v6.phv00079852.v6", "phs000200.v11.pht002754.v4.phv00169603.v4", "phs000200.v11.pht002754.v4.phv00169605.v4", "phs000200.v11.pht002754.v4.phv00169608.v4", "phs000200.v11.pht002754.v4.phv00169611.v4"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  # Get medication dataset.\n  dataset_med <- phen_list$source_data$pht002754\n\n  # Subset to baseline visit.\n  dataset_med <- filter(dataset_med, F44VTYP == 1)\n\n  # Select variables needed.\n  dataset_med <- select(dataset_med, topmed_subject_id, ADULTDY, F44DAYS, TCCODE)\n\n  # Substitute the value of 'NA' to missing.\n  dataset_med$ADULTDY[dataset_med$ADULTDY %in% 'NA'] <- NA\n  dataset_med$TCCODE[dataset_med$TCCODE %in% 'NA'] <- NA\n\n  # Convert character values to numeric.\n  dataset_med <- mutate_if(dataset_med, is.character, as.numeric)\n\n  # Get blood pressure dataset.\n  dataset_bp <- phen_list$source_data$pht001019\n\n  # Subset to baseline visit.\n  dataset_bp <- filter(dataset_bp, F80VTYP == 1)\n\n  # Convert character values to numeric.\n  dataset_bp <- mutate_if(dataset_bp, is.character, as.numeric)\n\n  # Select variables needed and join with medication dataset to get medication taken during\n  # blood pressure measurement.\n  dataset_bp <- select(dataset_bp, topmed_subject_id, F80DAYS)\n  dataset_med <- left_join(dataset_med, dataset_bp, by = \"topmed_subject_id\")\n\n  # Subset participants who had taken blood pressure measurements.\n  dataset_med <- filter(dataset_med, !is.na(F80DAYS))\n\n  # Create the antihypertensive medication status variable and assign the value \"-1\" to all records.\n  dataset_med$meds <- -1\n\n  # Subset participants taking antihypertensive meds at time of medication questionnaire visit.\n  whi_med_y <- filter(dataset_med,\n                      (TCCODE >= 330000 & TCCODE <= 349999) |\n                      (TCCODE >= 360000 & TCCODE <= 369999) |\n                      (TCCODE == 372000) | (TCCODE == 375000) |\n                      (TCCODE == 376000) | (TCCODE == 379900))\n\n  # For each visit defined by one \"F44DAYS\", calculate the new variable\n  # \"MEDSTART\" (Medication start days since randomization/enrollment).\n  whi_med_yes <- mutate(whi_med_y, MEDSTART = F44DAYS - ADULTDY)\n\n  # If the time of taking blood pressure measurements was between MEDSTART and the\n  # time of medication questionnaire visit, it means the participant was taking\n  # antihypertensive meds at blood pressure measurements.\n  whi_med_yes <- mutate(whi_med_yes,\n                        meds = ifelse(MEDSTART <= F80DAYS & F80DAYS <= F44DAYS, 1, meds))\n\n  # If the time of taking blood pressure measurements was before MEDSTART,\n  # it means the participant was not taking antihypertensive meds at blood pressure measurements.\n  whi_med_yes <- mutate(whi_med_yes, meds = ifelse(F80DAYS < MEDSTART, 0, meds))\n\n  # For participants with multiple medication questionnaire visits, if she was ever assigned the\n  # value 1 at the previous steps, her antihypertensive meds status should be 1. If she was\n  # assigned both 0 and -1, her antihypertensive meds status should be 0.\n  whi_med_yes <- group_by(whi_med_yes, topmed_subject_id) %>%\n                 mutate(antihypertensive_meds = max(meds)) %>%\n                 ungroup()\n\n  # Filter out unique values.\n  whi_med_yes <- distinct(select(whi_med_yes, topmed_subject_id, antihypertensive_meds, F80DAYS))\n\n  # Subset participants not taking antihypertensive meds at time of medication questionnaire visit.\n  whi_med_n <- anti_join(dataset_med, whi_med_y, by = \"topmed_subject_id\")\n\n  # If the time of taking blood pressure measurements was before or the same as the\n  # time of medication questionnaire visit, it means the participant was not taking\n  # antihypertensive meds at blood pressure measurements.\n  whi_med_no <- mutate(whi_med_n, meds = ifelse(F80DAYS <= F44DAYS, 0, meds))\n\n  # If a participant had multiple medication questionnaire visits, as long as she was assigned the\n  # value 0 at the previous step, her antihypertensive meds status should be 0.\n  whi_med_no <- group_by(whi_med_no, topmed_subject_id) %>%\n                mutate(antihypertensive_meds = max(meds)) %>%\n                ungroup()\n\n  # Filter out unique values.\n  whi_med_no <- distinct(select(whi_med_no, topmed_subject_id, antihypertensive_meds, F80DAYS))\n\n  # Combine datasets.\n  whi_med_all <- bind_rows(whi_med_yes, whi_med_no)\n\n  # Convert the encoded value \"-1\" to \"NA\" to represent missing meds status.\n  whi_med_all$antihypertensive_meds[whi_med_all$antihypertensive_meds == -1] <- NA\n\n  # Select the medication variable and time of blood pressure measurement.\n  whi_med_all <- select(whi_med_all, topmed_subject_id, antihypertensive_meds, F80DAYS)\n\n  # Get age dataset.\n  dataset_age <- phen_list$source_data$pht000998\n\n  # Substitute the value of 'NA' to missing.\n  dataset_age$F2DAYS[dataset_age$F2DAYS %in% 'NA'] <- NA\n  dataset_age$AGE[dataset_age$AGE %in% 'NA'] <- NA\n\n  # Convert character values to numeric.\n  dataset_age <- mutate_if(dataset_age, is.character, as.numeric)\n\n  # Join blood pressure dataset and age dataset.\n  dataset <- inner_join(whi_med_all, dataset_age, by = \"topmed_subject_id\")\n\n  # Calculate age at blood pressure measurement.\n  dataset <- mutate(dataset,\n                    age = ifelse(F2DAYS > 0,\n                                 AGE + F80DAYS / 365.25,\n                                 AGE + (abs(F2DAYS) + F80DAYS) / 365.25))\n\n  # Select the output variables.\n  dataset <- select(dataset, topmed_subject_id, antihypertensive_meds, age)\n\n  # Convert variable types.\n  dataset <- mutate(dataset, antihypertensive_meds = as.character(antihypertensive_meds))\n\n  # Remove records with NAs from dataset.\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    }
+  ]
+}

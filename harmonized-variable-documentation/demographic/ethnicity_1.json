@@ -1,0 +1,144 @@
+{
+  "name": "ethnicity_1",
+  "phenotype_concept": "ethnicity",
+  "concept_variant": 1,
+  "description": "Indicator of Hispanic or Latino ethnicity.",
+  "version": 4,
+  "dcc_harmonization_id": 97,
+  "data_type": "encoded",
+  "measurement_units": null,
+  "has_age_variable": false,
+  "date_harmonized": "2018-07-31 15:43:43",
+  "dcc_harmonization_comments": "For a study without a specific ethnicity variable but for which the component study variable for race had a category of Hispanic/Latino, the subjects so indicated were assigned \"`HL`\".\n",
+  "encoded_values": [
+    {
+      "code": "both",
+      "value": "ethnicity component dbGaP variable values for a subject were inconsistent/contradictory (e.g. over multiple visits)"
+    },
+    {
+      "code": "HL",
+      "value": "Hispanic or Latino"
+    },
+    {
+      "code": "notHL",
+      "value": "not Hispanic or Latino"
+    }
+  ],
+  "controlled_vocabulary": [
+    {
+      "source": "UMLS",
+      "version": "2018AB",
+      "id": "C2741637"
+    }
+  ],
+  "harmonization_units": [
+    {
+      "name": "CFS",
+      "component_study_variables": ["phs000284.v1.pht001902.v1.phv00122991.v1", "phs000284.v1.pht001902.v1.phv00122992.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n    source_data <- phen_list$source_data\n    dat <- source_data[[\"pht001902\"]]\n\n # 1=Hispanic or Latino; 0=Not Hispanic or Latino; 2=Unknown\n # 1=White or Caucasian; 2=Black or African American; 3=Asian; 4=Hispanic;\n # 5=Native American or Alaska Native;  6=More than one race\n\n   dat$ethnicity[dat$ethnicity %in% 0] <- \"notHL\"\n   dat$ethnicity[dat$ethnicity %in% 1] <- \"HL\"\n   dat$ethnicity[dat$ethnicity %in% 2] <- NA\n\n   se2 <- dat$race %in% 4  # Hispanic race will count as ethnicity HL\n   dat$ethnicity[se2] <- \"HL\"\n\n   dat2 <- dat %>% filter(!is.na(ethnicity)) %>% tbl_df() %>%\n       arrange(topmed_subject_id) %>%\n        group_by(topmed_subject_id)\n\n  # determine number of unique ethnicity categories chosen across visits for each subject\n   sdat <- dat2 %>% summarise(ncate = length(unique(ethnicity)))\n\n   dat3 <- inner_join(dat2, sdat)\n   sele <- dat3$ncate > 1\n   dat3$ethnicity[sele] <- \"both\"  # inconsistent responses across visits\n\n  # slice(1) chooses the first entry for each subject (all entries per subject are now the same)\n   datt <- dat3 %>% slice(1) %>%\n          select(topmed_subject_id, ethnicity)\n\n   return(datt)\n}\n"
+    },
+    {
+      "name": "CHS_AfricanAmerican",
+      "component_study_variables": ["phs000287.v6.pht001490.v1.phv00105652.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n    source_data <- phen_list$source_data\n    dat <- source_data[[\"pht001490\"]]\n\n # YR5 NEW file (NEW cohort)\n # HISP01: 0/1 = no/yes for Hispanic origin\n\n    dat <- dat %>% filter(!is.na(HISP01))\n\n   datt <- dat %>% mutate(ethnicity = ifelse(dat$HISP01 %in% 1, \"HL\", \"notHL\")) %>%\n          select(topmed_subject_id, ethnicity)\n\n   return(datt)\n}\n"
+    },
+    {
+      "name": "CHS_Original",
+      "component_study_variables": ["phs000287.v6.pht001450.v1.phv00099434.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n    source_data <- phen_list$source_data\n    dat <- source_data[[\"pht001450\"]]\n\n # BASE1 file (Original or OLD cohort)\n # HISP01: 0/1 = no/yes for Hispanic origin\n\n    dat <- dat %>% filter(!is.na(HISP01))\n\n   datt <- dat %>% mutate(ethnicity = ifelse(dat$HISP01 %in% 1, \"HL\", \"notHL\")) %>%\n          select(topmed_subject_id, ethnicity)\n\n   return(datt)\n}\n"
+    },
+    {
+      "name": "COPDGene",
+      "component_study_variables": ["phs000179.v5.pht002239.v4.phv00159573.v4"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n    source_data <- phen_list$source_data\n    dat <- source_data[[\"pht002239\"]]\n\n # 1= Hispanic or Latino 2 = not Hispanic or Latino\n\n    dat <- dat %>% filter(!is.na(ethnic)) %>%\n        mutate(ethnicity = ifelse(ethnic %in% 1, \"HL\", \"notHL\"))\n\n   dat <- dat %>% select(topmed_subject_id, ethnicity)\n\n   return(dat)\n}\n"
+    },
+    {
+      "name": "CRA",
+      "component_study_variables": ["phs000988.v2.pht005248.v2.phv00258651.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n # harmonize ethnicity for CRA\n # phenotype file has \"race\", all values \"Hispanic\"\n    source_data <- phen_list$source_data\n\n    dat <- source_data[[\"pht005248\"]]\n\n   dat <- dat %>% filter(race %in% \"Hispanic\") %>%\n      mutate(ethnicity = \"HL\") %>% select(topmed_subject_id, ethnicity)\n\n   return(dat)\n}\n"
+    },
+    {
+      "name": "FHS_Gen3",
+      "component_study_variables": ["phs000007.v29.pht000074.v10.phv00021245.v4", "phs000007.v29.pht000074.v10.phv00021398.v4", "phs000007.v29.pht003094.v4.phv00177238.v2", "phs000007.v29.pht003094.v4.phv00177597.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n # harmonize ethnicity for FHS Generation 3\n # variables are 0/1 (no/yes) for given categories\n # Have race category of Hispanic (Spanish/Hispanic/Latino)\n # 1 if checked, 0 if no or not checked\n\n   source_data <- phen_list$source_data\n\n   # visit 1 data\n\n    dat1 <- source_data[[\"pht000074\"]]\n    dat1 <- dat1[dat1$IDTYPE %in% 3, ]\n    vars <- \"G3A484\"\n\n   w <- which(is.element(dat1, \".\"))\n   dat1[w] <- NA\n   dat1$ethnicity <- NA\n\n   se <- dat1$G3A484 %in% 1\n   dat1$ethnicity[se] <- \"HL\"\n\n   dat1 <- dat1 %>% filter(!is.na(ethnicity)) %>%\n          select(topmed_subject_id, ethnicity)\n\n   # visit 2 data - contains Gen3, NOS, Omni2\n   # Hispanic is not race choice\n   #   but there is question re Hispanic ethnicity: 1 = yes; 2 = no\n\n    dat2 <- source_data[[\"pht003094\"]]\n    dat2 <- dat2[dat2$idtype %in% 3, ] # choose Gen3\n    vars <- \"g3b0624\"\n\n   w <- which(is.element(dat2, \".\"))\n   dat2[w] <- NA\n\n   dat2 <- dat2 %>% filter(!is.na(g3b0624)) %>%\n        mutate(ethnicity = ifelse(g3b0624 == 1, \"HL\", \"notHL\")) %>%\n        select(topmed_subject_id, ethnicity)\n\n   dat <- rbind(dat1, dat2)\n\n   dat <- dat %>% tbl_df() %>%\n       arrange(topmed_subject_id) %>%\n        group_by(topmed_subject_id)\n\n  # determine number of unique ethnicity categories chosen across visits\n  #    for each subject\n   sdat <- dat %>% summarise(ncatr = length(unique(ethnicity)))\n\n   datt <- inner_join(dat, sdat)\n   selr <- datt$ncatr > 1\n   datt$ethnicity[selr] <- \"both\"  # inconsistency in choices across visits\n\n  # slice(1) chooses the first entry for each subject (all entries per subject are now the same)\n   datt <- datt %>% filter(!is.na(ethnicity)) %>% slice(1) %>%\n          select(topmed_subject_id, ethnicity)\n\n   return(datt)\n}\n"
+    },
+    {
+      "name": "FHS_NewOffspringSpouse",
+      "component_study_variables": ["phs000007.v29.pht003094.v4.phv00177238.v2", "phs000007.v29.pht003094.v4.phv00177597.v2", "phs000007.v29.pht006005.v1.phv00273701.v1", "phs000007.v29.pht006005.v1.phv00274067.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n # harmonize ethnicity for FHS New Offspring Spouse\n # variables are 0/1 (no/yes) for given categories\n # Have race category of Hispanic (Spanish/Hispanic/Latino)\n\n   source_data <- phen_list$source_data\n\n   # visit 1 data\n\n    dat1 <- source_data[[\"pht006005\"]]\n    dat1 <- dat1[dat1$idtype %in% 2, ]\n    vars <- \"g3a484\"\n\n   w <- which(is.element(dat1, \".\"))\n   dat1[w] <- NA\n\n   dat1$ethnicity <- NA\n   se <- dat1$g3a484 %in% 1 # chose Hispanic as race\n   dat1$ethnicity[se] <- \"HL\"\n\n   dat1 <- dat1 %>% filter(!is.na(ethnicity)) %>%\n          select(topmed_subject_id, ethnicity)\n\n   # visit 2 data - contains Gen3, NOS, Omni2\n   # Hispanic is not race choice but there is question\n   #   re Hispanic ethnicity: 1 = yes; 2 = no\n\n    dat2 <- source_data[[\"pht003094\"]]\n    dat2 <- dat2[dat2$idtype %in% 2, ] # choose NOS\n    vars <- \"g3b0624\"\n\n   w <- which(is.element(dat2, \".\"))\n   dat2[w] <- NA\n\n   dat2 <- dat2 %>% filter(!is.na(g3b0624)) %>%\n        mutate(ethnicity = ifelse(g3b0624 == 1, \"HL\", \"notHL\")) %>%\n        select(topmed_subject_id, ethnicity)\n\n   dat <- rbind(dat1, dat2)\n\n   dat <- dat %>% tbl_df() %>%\n       arrange(topmed_subject_id) %>%\n        group_by(topmed_subject_id)\n\n   # determine number of unique ethnicity categories chosen across visits for each subject\n   sdat <- dat %>% summarise(ncatr = length(unique(ethnicity)))\n\n   datt <- inner_join(dat, sdat)\n   selr <- datt$ncatr > 1\n   datt$ethnicity[selr] <- \"both\" # inconsistent responses across visits\n\n  # slice(1) chooses the first entry for each subject (all entries per subject are now the same)\n   datt <- datt %>% filter(!is.na(ethnicity)) %>% slice(1) %>%\n          select(topmed_subject_id, ethnicity)\n\n   return(datt)\n}\n"
+    },
+    {
+      "name": "FHS_Offspring",
+      "component_study_variables": ["phs000007.v29.pht000747.v5.phv00072044.v4", "phs000007.v29.pht000747.v5.phv00072538.v4", "phs000007.v29.pht000747.v5.phv00072539.v4"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n # harmonize ethnicity for FHS Offspring\n # variables are 0/1 (no/yes) for given categories\n # H700 is Hispanic/Latino and H701 is not Hispanic/Latino\n\n   source_data <- phen_list$source_data\n\n   # visit 8 data\n\n    dat1 <- source_data[[\"pht000747\"]]\n    dat1 <- dat1[dat1$IDTYPE %in% 1, ]\n    vars <- paste0(\"H\", 700:701)\n\n   w <- which(is.element(dat1, \".\"))\n   dat1[w] <- NA\n\n   dat1$ethnicity <- dat1$H700  # 0 not hispanic, 1 hispanic\n   s <- (dat1$H700 %in% 1 & dat1$H701 %in% 1) | (dat1$H700 %in% 0 & dat1$H701 %in% 0)\n # chose yes and no\n   dat1$ethnicity[s] <- NA\n\n   datt <- dat1 %>% filter(!is.na(ethnicity)) %>% select(topmed_subject_id, ethnicity)\n   datt$ethnicity[datt$ethnicity %in% 1] <- \"HL\"\n   datt$ethnicity[datt$ethnicity %in% 0] <- \"notHL\"\n\n   return(datt)\n}\n"
+    },
+    {
+      "name": "FHS_Omni1",
+      "component_study_variables": ["phs000007.v29.pht004815.v1.phv00251263.v1", "phs000007.v29.pht004815.v1.phv00251746.v1", "phs000007.v29.pht004815.v1.phv00251747.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n # harmonize ethnicity for FHS Omni1\n # variables are 0/1 (no/yes) for given categories\n # h700 is Hispanic/Latino and h701 is not Hispanic/Latino\n\n   source_data <- phen_list$source_data\n\n   # visit 3 data\n\n    dat1 <- source_data[[\"pht004815\"]]\n    dat1 <- dat1[dat1$idtype %in% 7, ]\n    vars <- paste0(\"h\", 700:701)\n\n   w <- which(is.element(dat1, \".\"))\n   dat1[w] <- NA\n\n   dat1$ethnicity <- dat1$h700  # 0 not hispanic, 1 hispanic\n   s <- (dat1$h700 %in% 1 & dat1$h701 %in% 1) | (dat1$h700 %in% 0 & dat1$h701 %in% 0)\n # chose yes and no\n   dat1$ethnicity[s] <- NA\n\n   datt <- dat1 %>% filter(!is.na(ethnicity)) %>% select(topmed_subject_id, ethnicity)\n   datt$ethnicity[datt$ethnicity %in% 1] <- \"HL\"\n   datt$ethnicity[datt$ethnicity %in% 0] <- \"notHL\"\n\n   return(datt)\n}\n"
+    },
+    {
+      "name": "FHS_Omni2",
+      "component_study_variables": ["phs000007.v29.pht003094.v4.phv00177238.v2", "phs000007.v29.pht003094.v4.phv00177597.v2", "phs000007.v29.pht006006.v1.phv00274194.v1", "phs000007.v29.pht006006.v1.phv00274558.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n # harmonize ethnicity for FHS Omni2\n # variables are 0/1 (no/yes) for given categories\n # Have race category of Hispanic (Spanish/Hispanic/Latino)\n\n   source_data <- phen_list$source_data\n\n   # visit 1 data\n\n    dat1 <- source_data[[\"pht006006\"]]\n    dat1 <- dat1[dat1$idtype %in% 72, ]\n    vars <- \"g3a484\"\n\n   w <- which(is.element(dat1, \".\"))\n   dat1[w] <- NA\n\n   dat1$ethnicity <- NA\n   se <- dat1$g3a484 %in% 1 # chose Hispanic as race\n   dat1$ethnicity[se] <- \"HL\"\n\n   dat1 <- dat1 %>% filter(!is.na(ethnicity)) %>%\n          select(topmed_subject_id, ethnicity)\n\n   # visit 2 data - contains Gen3, NOS, Omni2\n   # Hispanic is not race choice but there is question re Hispanic ethnicity: 1 = yes; 2 = no\n\n    dat2 <- source_data[[\"pht003094\"]]\n    dat2 <- dat2[dat2$idtype %in% 72, ] # choose Omni2\n    vars <- \"g3b0624\"\n\n   w <- which(is.element(dat2, \".\"))\n   dat2[w] <- NA\n\n   dat2 <- dat2 %>% filter(!is.na(g3b0624)) %>%\n        mutate(ethnicity = ifelse(g3b0624 == 1, \"HL\", \"notHL\")) %>%\n        select(topmed_subject_id, ethnicity)\n\n   dat <- rbind(dat1, dat2)\n\n   dat <- dat %>% tbl_df() %>%\n       arrange(topmed_subject_id) %>%\n        group_by(topmed_subject_id)\n\n  # determine number of unique ethnicity categories chosen across visits for each subject\n   sdat <- dat %>% summarise(ncatr = length(unique(ethnicity)))\n\n   datt <- inner_join(dat, sdat)\n   selr <- datt$ncatr > 1\n   datt$ethnicity[selr] <- \"both\"  # inconsistent responses across visits\n\n  # slice(1) chooses the first entry for each subject (all entries per subject are now the same)\n   datt <- datt %>% filter(!is.na(ethnicity)) %>% slice(1) %>%\n          select(topmed_subject_id, ethnicity)\n\n   return(datt)\n}\n"
+    },
+    {
+      "name": "GENOA",
+      "component_study_variables": ["phs001238.v1.pht006039.v1.phv00277509.v1", "phs001238.v1.pht006653.v1.phv00307790.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n # harmonize ethnicity for GENOA\n    source_data <- phen_list$source_data\n\n#  information is in the RACE variable\n# values are \"African-American\", \"Hispanic White\", \"Non-Hispanic White\"\n\n   dat1 <- source_data[[\"pht006039\"]]   # AA sub-study\n   dat2 <- source_data[[\"pht006653\"]]   # EA sub_study\n   dat <- rbind(dat1, dat2)\n\n# filter RACE to values with ethnicity information\n# assign HL = if RACE is Hispanic White and notHL otherwise, i.e. for Non-Hispanic White\n# select subject id and ethnicity\n   dat <- dat %>% filter(RACE %in% c(\"Hispanic White\", \"Non-Hispanic White\")) %>%\n           mutate(ethnicity = ifelse(RACE %in% \"Hispanic White\", \"HL\", \"notHL\")) %>%\n           select(topmed_subject_id, ethnicity)\n\n   return(dat)\n}\n"
+    },
+    {
+      "name": "HCHS_SOL",
+      "component_study_variables": ["phs000810.v1.pht004713.v1.phv00226241.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n    source_data <- phen_list$source_data\n    dat <- source_data[[\"pht004713\"]]\n\n  # All subjects are Hispanic/Latino\n  # set race to Other and ethnicity to HL\n  # will define ethnic_subgroup variable\n  # pull in Subject file and delete subjects with consent 0\n\n   dat <- dat %>% filter(!is.element(CONSENT, 0)) %>%\n        mutate(ethnicity = \"HL\") %>%\n        select(topmed_subject_id, ethnicity)\n\n   return(dat)\n}\n"
+    },
+    {
+      "name": "HVH",
+      "component_study_variables": ["phs001013.v3.pht005311.v2.phv00259381.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  dat <- phen_list$source_data$pht005311 %>%\n    # Remove rows that are missing sex variable.\n    group_by(topmed_subject_id) %>%\n    # Collapse sex variable by topmed_subject_id.\n    summarize(eth_1 = unique(ethnicity)) %>%\n    filter(!is.na(eth_1) & !(eth_1 %in% 9)) %>%\n    mutate(ethnicity = ifelse(eth_1 %in% 1, \"HL\", \"notHL\")) %>%\n    select(topmed_subject_id, ethnicity)\n  return(dat)\n}\n"
+    },
+    {
+      "name": "Mayo_VTE",
+      "component_study_variables": ["phs000289.v2.pht001886.v2.phv00121875.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n\n# harmonize ethnicity for GWAS_VTE (parent Mayo)\n# variable Hispanic = 1 if of Hispanic or Latino ethnicity, = 0 is not Hispanic or Latino\n\n  datt <- phen_list$source_data[[\"pht001886\"]]\n\n  datt <- datt %>% filter(!is.na(Hispanic)) %>%\n            mutate(ethnicity = ifelse(Hispanic %in% 1, \"HL\", \"notHL\")) %>%\n                 select(topmed_subject_id, ethnicity) %>% na.omit\n\n   return(datt)\n}\n"
+    },
+    {
+      "name": "MESA_AirNR",
+      "component_study_variables": ["phs000209.v13.pht001111.v4.phv00082641.v1", "phs000209.v13.pht003086.v3.phv00174585.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n # harmonize ethnicity for MESA AirNR\n # 1=white; 2=chinese american; 3=black;4=hispanic\n # assign Hispanic for ethnicity if indicated Hispanic race at any time\n\n    source_data <- phen_list$source_data\n\n    # visit 1 data\n    dat1 <- source_data[[\"pht001111\"]]\n\n   # visit 5 data\n   dat5 <- source_data[[\"pht003086\"]]\n\n   dat <- rbind(dat1, dat5)\n\n   dat$ethnicity <- NA\n   dat$ethnicity[dat$race1c %in% 4] <- \"HL\"   # set ethnicity = HL if race choice is Hispanic\n   # cannot identify \"not Hispanic\" directly\n\n   dat <- dat %>% tbl_df() %>%\n       arrange(topmed_subject_id) %>%\n        group_by(topmed_subject_id)\n\n  # slice(1) chooses the first entry for each subject\n   datt <- dat %>% filter(!is.na(ethnicity)) %>% slice(1) %>%\n          select(topmed_subject_id, ethnicity)\n\n   return(datt)\n}\n"
+    },
+    {
+      "name": "MESA_Classic",
+      "component_study_variables": ["phs000209.v13.pht001116.v10.phv00084444.v2", "phs000209.v13.pht001118.v8.phv00085775.v2", "phs000209.v13.pht001119.v8.phv00086261.v2", "phs000209.v13.pht001120.v10.phv00086729.v2", "phs000209.v13.pht003091.v3.phv00176008.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n # harmonize ethnicity for MESA Classic\n # 1=white; 2=chinese american; 3=black;4=hispanic\n  # assign Hispanic for ethnicity if indicated Hispanic race at any time\n\n    source_data <- phen_list$source_data\n\n   # visit 1 data\n    dat1 <- source_data[[\"pht001116\"]]\n\n   # visit 2 data\n    dat2 <- source_data[[\"pht001118\"]]\n\n   # visit 3 data\n    dat3 <- source_data[[\"pht001119\"]]\n\n   # visit 4 data\n    dat4 <- source_data[[\"pht001120\"]]\n\n   # visit 5 data\n    dat5 <- source_data[[\"pht003091\"]]\n\n   dat <- rbind(dat1, dat2, dat3, dat4, dat5)\n\n   dat$ethnicity <- NA\n   dat$ethnicity[dat$race1c %in% 4] <- \"HL\"\n  # set ethnicity = HL if race choice is Hispanic\n      # we cannot identify not Hispanic directly\n\n    dat <- dat %>% tbl_df() %>%\n         arrange(topmed_subject_id) %>%\n         group_by(topmed_subject_id)\n\n  # slice(1) chooses the first entry for each subject\n   datt <- dat %>% filter(!is.na(ethnicity)) %>% slice(1) %>%\n          select(topmed_subject_id, ethnicity)\n\n   return(datt)\n}\n"
+    },
+    {
+      "name": "MESA_Family",
+      "component_study_variables": ["phs000209.v13.pht001121.v3.phv00087074.v1", "phs000209.v13.pht001121.v3.phv00087659.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n # harmonize ethnicity for MESA Family\n # racefc: 1=white; 2=chinese american; 3=black;4=hispanic\n # scrhispf: 0 = not Hispanic, 1 = Hispanic\n\n    source_data <- phen_list$source_data\n\n   # visit 1 data\n    dat <- source_data[[\"pht001121\"]]\n\n   dat$ethnicity <- NA\n\n   sel1 <- dat$scrhispf %in% 0 & !(dat$racefc %in% 4)\n   sel2 <- dat$scrhispf %in% 0 & dat$racefc %in% 4 # inconsistent\n   sel3 <- dat$scrhispf %in% 1 | (is.na(dat$scrhispf) & dat$racefc %in% 4)\n\n   dat$ethnicity[sel3] <- \"HL\"\n   dat$ethnicity[sel1] <- \"notHL\"\n   dat$ethnicity[sel2] <- \"both\"\n\n   datt <- dat %>% filter(!is.na(ethnicity)) %>%\n          select(topmed_subject_id, ethnicity)\n\n   return(datt)\n}\n"
+    },
+    {
+      "name": "WHI",
+      "component_study_variables": ["phs000200.v11.pht000998.v6.phv00078450.v6"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n # harmonize ethnicity for WHI\n # From WHI study investigator: Form 2 takes precedence, Form 41 can be used for more specificity\n # If Form 2 says \"hispanic\", and F41 has one of the main hispanic subcategories\n #   (puerto rican, mexican, cuban), that can be used.\n # The other combinations (F2 = hispanic and F41 = missing, F41 = \"not hispanic\",\n #   or F41 = \"other hispanic\") can be lumped together or used separate.\n # However, if F41 is Hispanic and F2 is not hispanic, F2 wins.\n\n    source_data <- phen_list$source_data\n\n ## baseline\n # 1=American Indian or Alaskan Native; 2=Asian or Pacific Islander;\n #    3=Black or African American; 4=Hispanic/Latino; 5=White (not of Hispanic origin); 8 = Other\n\n   dat <- source_data[[\"pht000998\"]]\n   dat <- dat %>% filter(!is.na(RACE)) %>%\n       mutate(ethnicity = ifelse(RACE %in% 4, \"HL\", \"notHL\")) %>%\n       select(topmed_subject_id, ethnicity)\n\n return(dat)\n}\n"
+    }
+  ]
+}

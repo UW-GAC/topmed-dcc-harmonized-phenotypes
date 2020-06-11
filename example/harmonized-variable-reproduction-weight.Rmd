@@ -1,0 +1,524 @@
+---
+title: Reproduce the `example_weight_1` variable
+author: Adrienne Stilp
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  github_document
+---
+
+```{r setup, echo = FALSE}
+options(knitr.table.format = 'html')
+knitr::opts_chunk$set(message = FALSE)
+```
+
+This document explains how to use the information in the JSON documentation to reproduce a given harmonized variable from the phenotype files available on dbGaP.
+In this example, we'll focus on the `example_weight_1` variable.
+
+
+## Setup
+
+First, we'll need to load some packages to help work with the files.
+```{r setup-packages}
+library(readr)
+library(dplyr)
+library(stringr)
+library(jsonlite)
+library(xml2)
+```
+
+Next, install the `dbgaptools` R package, which will allow us to read the dbGaP files more easily.
+```{r}
+if (!require(dbgaptools)) {
+  devtools::install_github("UW-GAC/dbgaptools")
+}
+library(dbgaptools)
+```
+
+We will define some constants that we'll use throughout this vignette.
+```{r setup-constants}
+REGEX_PHS <- "phs(\\d{6}).v(\\d+?)"
+REGEX_PHT <- "pht(\\d{6}).v(\\d+?)"
+REGEX_PHV <- "phv(\\d{8}).v(\\d+?)"
+REGEX_DBGAP <- sprintf("%s.%s.%s", REGEX_PHS, REGEX_PHT, REGEX_PHV)
+```
+
+We'll also define some helper functions to read the XML data dictionaries from dbGaP.
+```{r setup-helper-functions}
+# Return the variable name from an xml node.
+get_node_varname <- function(node) {
+  varname <- xml2::xml_find_all(node[[1]], ".//name") %>%
+    xml2::xml_text()
+  return(varname)
+}
+
+# Return the dbGaP variable accession from an xml node.
+get_node_phv <- function(node) {
+  id = unname(xml2::xml_attrs(node[[1]])["id"])
+  as.integer(stringr::str_match(id, REGEX_PHV)[, 2])
+}
+
+# Return the version of a dbGaP variable from an xml node.
+get_node_phv_version <- function(node) {
+    id <- unname(xml2::xml_attrs(node[[1]])["id"])
+  as.integer(stringr::str_match(id, REGEX_PHV)[, 3])
+}
+
+# Read the variable name, accession, and version from an xml data dictionary into a data frame.
+read_dd_xml <- function(filename) {
+  # Set parent_dd_file to the filename of the XML data dictionary on disk
+  xml_dd <- xml2::read_xml(filename)
+
+  # Select variable nodes
+  variable_nodes <- xml2::xml_find_all(xml_dd, "/data_table/variable")
+
+  # Create a one-line data frame for each variable node.
+  n_vars <- length(variable_nodes)
+  dd <- data.frame(
+    name = rep(NA, n_vars),
+    phv = rep(NA, n_vars),
+    phv_version = rep(NA, n_vars),
+    stringsAsFactors = FALSE
+  )
+  for (i in seq_along(variable_nodes)) {
+    node <- variable_nodes[i]
+    dd$name[i] <- get_node_varname(node)
+    dd$phv[i] <- get_node_phv(node)
+    dd$phv_version[i] = get_node_phv_version(node)
+  }
+  return(dd)
+}
+```
+
+## Required directory structure for dbGaP files
+
+For this example, we assume that the dbGaP files for a single study version are stored in a single directory named by the study accession and version number, e.g., `phs001985.v1`.
+
+dbGaP provides three types of files for each dataset:
+
+1. A data dictionary containing metadata about each phenotype variable in this dataset (`*.data_dict.xml`).
+2. Data files containing the phenotype data (`*.txt`). There is one data file per consent group.
+3. A variable report containing summary information about each phenotype variable in this dataset (`*.var_report.xml`).
+
+Each accession-version directory contains these three file types for the Subject file and for each of the phenotype datasets available on dbGaP for that study.
+```{r}
+files <- list.files("example_data/dbgap/phs001985.v1")
+files
+```
+
+Note that for the Subject file, only one data file is available across all consent groups:
+```{r}
+subj_file <- files[grepl("Subject\\.MULTI", files)]
+print(subj_file)
+```
+
+For each of the phenotype dataset data files, there is one data file for each consent group:
+```{r}
+phen_files_1 <- files[grepl("Test_Study_1_Subject_Phenotypes\\..+?\\.txt$", files)]
+print(phen_files_1)
+```
+
+## Reading in dbGaP data files
+
+The data files provided by dbGaP are tab-separated text files, which generally contain columns for `dbGaP_Subject_ID`, study-submitted subject ID (often but not always called `SUBJECT_ID`), and various other columns that contain phenotype data.
+In real-world cases, we have encoutered occasional problems reading these files in with either `readr::read_tsv()` or the base R function `read.table()` due to small formatting differences between files, such as:
+
+* extra tab columns at the end of each row
+* missing columns at the end of each row
+* data values that contain the `#` character, which is often interpreted as a comment by R.
+
+The `dbgaptools::read_ds_file()` function handles many of these cases, but is not guaranteed to work on every dbGaP file.
+
+## Reproducing the harmonized values
+
+To illustrate the steps for reproducing harmonized phenotype values, we'll start with a simple study with component variables from only one phenotype file.
+We'll then go through an example showing how to work with a study that has component variables from multiple phenotype files.
+
+We'll also need to use the phs mapping file to create a unique subject identifier across TOPMed that we can use in analyses.
+
+Start by reading in the JSON file. We set the `simplifyDataFrame` argument to FALSE to read the JSON file in as R list structure instead of as a data frame.
+```{r read-json}
+json <- fromJSON('example_weight_1.json', simplifyDataFrame = FALSE)
+```
+
+Please review the overall documentation of the format of these files in the main repository README.
+
+
+### Reproduce the first unit
+
+We'll start by storing the first harmonization unit in its own variable.
+```{r}
+unit <- json$harmonization_units[[1]]
+unit
+```
+
+Next, we'll obtain the component variables for this unit.
+```{r}
+(component_variables <- unit$component_study_variables)
+```
+
+We have to parse the various dbGaP accession numbers from these strings.
+We'll use a regular expression to extract the study accession (phs), data table accession (pht), and variable accession (phv).
+```{r}
+matches <- stringr::str_match(component_variables, REGEX_DBGAP)
+matches
+```
+
+Next, we'll store these in a data frame for easier processing later, rename the columns, and convert strings to integers where appropriate.
+```{r}
+components <- as.data.frame(matches, stringsAsFactors = FALSE) %>%
+  transmute(
+    accession_string = V1,
+    phs = as.integer(V2),
+    phs_version = as.integer(V3),
+    pht = as.integer(V4),
+    pht_version = as.integer(V5),
+    phv = as.integer(V6),
+    phv_version = as.integer(V7)
+  )
+components
+```
+
+All component study variables within a harmonization unit come from the same study accession.
+We can identify the study assession number (phs) so we know which dbGaP accession contains the phenotype data.
+```{r}
+(phs <- unique(components$phs))
+(phs_version <- unique(components$phs_version))
+```
+
+To exactly recreate the harmonized values for this unit, we'll need to use the version of the dbGaP accession that is given in the component variable accession strings.
+You may have access to a different version of the study version than is given here.
+It may be possible to run the harmonization on variables from a different version of the study, but changes in the study data could prevent the harmonization from working correctly.
+
+The next step is to read in the dbGaP Subject file for this accession.
+First, locate the Subject file in the directory containing dbGaP files for this study.
+```{r}
+dbgap_dir <- file.path('example_data/dbgap', sprintf('phs%06d.v%d', phs, phs_version))
+list.files(dbgap_dir)
+(subj_file <- list.files(dbgap_dir, pattern = 'Subject\\.MULTI\\.txt$',
+                         full.names = TRUE))
+```
+
+Read the Subject file into R, making sure that only blank values are set to missing and that all columns are read in as character type.
+The `read_ds_file` function handles this for us.
+```{r, warning = FALSE}
+subj <- read_ds_file(subj_file, processed = TRUE) %>%
+  select(dbGaP_Subject_ID, SUBJECT_ID)
+head(subj)
+```
+
+Next, we'll create two new unique subject identifiers.
+Because study subject identifiers are unique within a dbGaP study accession but not across TOPMed, we'll use these identifiers when working with the harmonized data.
+For these identifiers, we are interested in uniquely identifying phenotype records for a subject in specific study, instead of identifying the same subject enrolled in two different studies.
+Note that if the same person enrolled in two different studies (e.g., in both StudyA and StudyB), they would be assigned different unique identifiers for the two different studies in this step.
+
+The first identifier is a unique identifier consisting of the TOPMed abbreviation for this study and the study-submitted subject identifier.
+Looking up this phs in the `example-phs-mapping.tsv` file, we can see that its study abbreviation is `StudyA`.
+We won't use this identifier when running the harmonization for this study, but we'll need it when combining harmonization across studies.
+```{r}
+subj <- subj %>%
+  mutate(unique_subject_key = sprintf("%s_%s", "StudyA", SUBJECT_ID))
+head(subj)
+```
+
+Second, we'll add an identifier called `topmed_subject_id`.
+This identifier is used when running the harmonization functions.
+We generate this column by creating a sequential integer for each subject in the subject file and then adding a large number (specific for this study) to those sequential integers.
+A given subject in a study should be assigned the same unique identifier across all harmonized variables.
+The following steps show you how you can create that integer.
+
+The large number for this accession can also be found in `unique_id` column of the `phs_mapping.tsv` file we looked at earlier:
+```{r}
+phs_mapping <- read_tsv("example-phs-mapping.tsv") %>%
+  filter(topmed_study == "StudyA")
+phs_mapping
+
+(study_integer <- phs_mapping$unique_id)
+```
+For StudyA, it is `10000000`.
+
+Here's how we'll create the `topmed_subject_id` for this study.
+```{r}
+subj <- subj %>%
+  mutate(topmed_subject_id = 1:n() + study_integer)
+head(subj)
+```
+
+Now that we've created the required identifiers, we can read in the phenotype files that contain the component study variables, and put them in the data structure required by the harmonization function.
+We'll start by locating the phenotype files in the directory containing the dbGaP files for this study.
+We can use the accession numbers of the component variables to identify the files in which those variables are found.
+```{r}
+(pht <- unique(components$pht))
+(pht_version <- unique(components$pht_version))
+```
+
+In this case, all component study variables are from a single dataset on dbGaP.
+We'll construct the filename prefix for this dataset using these accession numbers.
+```{r}
+file_regex <- sprintf('^phs%06d\\.v%d.pht%06d\\.v%d\\.', phs, phs_version, pht, pht_version)
+file_regex
+```
+
+Next, identify files matching this regular expression.
+```{r}
+(pht_files <- list.files(dbgap_dir, pattern = file_regex, full.names = TRUE))
+```
+
+We'll use the data files to obtain the component variable values and the data dictionary to obtain the names of the component variables in the data file.
+
+Find the data dictionary and read it in using one of the helper functions we defined earlier.
+```{r}
+(dd_file <- pht_files[endsWith(pht_files, 'data_dict.xml')])
+dd <- read_dd_xml(dd_file) %>%
+  filter(phv %in% components$phv)
+dd
+```
+This step maps the variable identifiers (phv) to the variable names in the data file.
+
+Next, read in and concatenate the data files from the two different consent groups.
+As before, make sure that only blank values are set to missing and that all columns are read in as character type.
+In this step we'll also add the `topmed_subject_id` column we created in the Subject file by joining on the `dbGaP_Subject_ID`.
+```{r}
+(phen_files <- pht_files[endsWith(pht_files, '.txt')])
+tmp_list <- lapply(phen_files, read_ds_file, processed = TRUE)
+phen <- bind_rows(tmp_list) %>%
+  left_join(subj, by = 'dbGaP_Subject_ID')
+```
+
+We also need to subset the data file to only the columns required for the harmonization function: `topmed_subject_id` and the `r nrow(components)` component variables.
+Note that we do not select the `unique_subject_key` variable we just created, because it is not allowed to be in the data frame when running the harmonization function.
+We'll add it back later before combining the harmonized data across both studies.
+```{r}
+component_variable_names <- as.list(dd$name)
+phen <- phen %>%
+  select(topmed_subject_id, !!! component_variable_names)
+head(phen)
+```
+
+Once we've read the phenotype data file in to R and selected the appropriate columns, we can create the data structure required to run the harmonization function.
+When working with study component data, this structure has one element named `source_data`.
+The `source_data` element is a list containing study data downloaded from dbGaP.
+It has one element for each different dataset in the component variables.
+The elements are named by the dbGaP accession for that dataset (e.g. `pht012345`), and each of those elements is a data frame whose columns are `topmed_subject_id` and the component variable names in dbGaP from that dataset.
+Here's what it looks like for this harmonization unit.
+```{r}
+source_data <- list()
+source_data[[sprintf("pht%06d", pht)]] <- phen
+phen_list <- list(source_data = source_data)
+lapply(phen_list$source_data, head)
+```
+
+Now that the component variables are in the expected format, we can obtain the harmonization function from the JSON documentation for this harmonization unit.
+```{r}
+cat(unit$harmonization_function)
+harmonize <- eval(parse(text = unit$harmonization_function))
+```
+This function processes the input data and returns a data frame with three columns:
+* `topmed_subject_id`
+* `example_weight`: the harmonized data value for the corresponding `topmed_subject_id`. Note that the `concept_variant` number is not part of this column name.
+* `age`: the age at measurement of the target variable.
+
+We'll run the harmonization function on the `phen_list` list that we just created.
+```{r}
+out <- harmonize(phen_list)
+dim(out)
+```
+
+All harmonization functions return a data frame with columns `topmed_subject_id`, the phenotype concept, and `age`:
+```{r}
+head(out)
+```
+
+Some harmonized variables do not have an associated age measurement.
+These variables can be identified by the JSON key `has_age_variable = false`.
+For those variables, the data frame returned by the harmonization function only has columns `topmed_subject_id` and the phenotype concept.
+
+We'll complete the harmonization for this unit in two steps: renaming variables to include the concept variant number, and adding the unique subject we created earlier to the data frame.
+```{r}
+harmonized_studya <- out %>%
+  rename(
+    example_weight_1 = example_weight,
+    age_at_example_weight_1 = age
+  ) %>%
+  left_join(subj, by = "topmed_subject_id") %>%
+  select(
+    SUBJECT_ID,
+    unique_subject_key,
+    topmed_subject_id,
+    example_weight_1,
+    age_at_example_weight_1
+  )
+head(harmonized_studya)
+```
+
+### Reproduce a harmonization unit with component variables from multiple phenotype files
+
+Next, we'll reproduce harmonization for a unit that has component variables from multiple files.
+In this case, we'll use the harmonization unit for the set of subjects in the second example study.
+This section will contain abbreviated instructions, as most steps were described in the previous section.
+
+As before, store the harmonization unit in its own variable.
+```{r}
+unit <- json$harmonization_units[[2]]
+unit
+```
+
+Obtain the component variables for this unit and parse the dbGaP accession numbers from these strings.
+```{r}
+(component_variables <- unit$component_study_variables)
+components <- stringr::str_match(component_variables, REGEX_DBGAP) %>%
+  as.data.frame(stringsAsFactors = FALSE) %>%
+  transmute(
+    accession_string = V1,
+    phs = as.integer(V2),
+    phs_version = as.integer(V3),
+    pht = as.integer(V4),
+    pht_version = as.integer(V5),
+    phv = as.integer(V6),
+    phv_version = as.integer(V7)
+  ) %>%
+  mutate(
+    file_prefix = sprintf("phs%06d.v%d.pht%06d.v%d", phs, phs_version, pht, pht_version)
+  )
+components
+```
+
+For this study, all the component variables come from the same study accession, but unlike the previous study, they are stored in two different files on dbGaP, as evidenced by the different `pht` numbers.
+
+Identify the study accession and the corresponding subject file.
+```{r}
+phs <- unique(components$phs)
+phs_version <- unique(components$phs_version)
+dbgap_dir <- file.path('example_data/dbgap', sprintf('phs%06d.v%d', phs, phs_version))
+(subj_file <- list.files(dbgap_dir, pattern = 'Subject\\.MULTI\\.txt$',
+                         full.names = TRUE))
+```
+
+Obtain the unique large integer for Study B from the phs mapping file:
+```{r}
+phs_mapping <- read_tsv("example-phs-mapping.tsv") %>%
+  filter(topmed_study == "StudyB")
+phs_mapping
+
+(study_integer <- phs_mapping$unique_id)
+```
+
+Read in the subject file and add the `topmed_study`, `topmed_subject_id`, and `unique_subject_key` columns.
+```{r}
+subj <- read_ds_file(subj_file, processed = TRUE) %>%
+  mutate(
+    topmed_subject_id = 1:n() + study_integer,
+    unique_subject_key = sprintf("StudyB_%s", SUBJECT_ID)
+  ) %>%
+  select(dbGaP_Subject_ID, SUBJECT_ID, topmed_subject_id, unique_subject_key)
+```
+
+Read in the phenotype files that contain the component study variables, and put them in the data structure required by the harmonization function.
+In this case, the `phen_list$source_data` list element will have two elements, one for each of the two datasets.
+We'll combine all the steps we ran above into a for loop over the two included datasets.
+```{r, warning = FALSE}
+phts <- unique(components$pht)
+pht <- phts[1]
+
+phen_list <- list(source_data = list())
+
+for (pht in phts) {
+  # Find the component variables that are contained in this pht.
+  components_in_this_pht <- components %>%
+    # The !! is required here because the variable (pht) has the same name as
+    # the dataset column (pht) we're filtering on.
+    filter(pht == !!pht)
+
+  # Get the set of dbGaP files corresponding to this dataset.
+  file_regex <- unique(components_in_this_pht$file_prefix)
+  pht_files <- list.files(dbgap_dir, pattern = file_regex, full.names = TRUE)
+
+  # Get the set of component variable names from the data dictionary.
+  dd_file <- pht_files[endsWith(pht_files, 'data_dict.xml')]
+  dd <- read_dd_xml(dd_file) %>%
+    filter(phv %in% components_in_this_pht$phv)
+  component_variable_names <- as.list(dd$name)
+
+  # Read in and concatenate the files from both consent groups.
+  phen_files <- pht_files[endsWith(pht_files, '.txt')]
+  tmp <- lapply(phen_files, read_ds_file, processed = TRUE)
+  phen <- do.call(bind_rows, tmp) %>%
+    left_join(subj, by = 'dbGaP_Subject_ID') %>%
+    select(topmed_subject_id, !!!component_variable_names)
+
+  # Add the final data frame to the phen_list structure.
+  phen_list$source_data[[sprintf("pht%06d", pht)]] <- phen
+}
+
+lapply(phen_list$source_data, head)
+```
+
+Obtain the harmonization function from the JSON documentation for this harmonization unit.
+```{r}
+cat(unit$harmonization_function)
+harmonize <- eval(parse(text = unit$harmonization_function))
+```
+This function processes the input data and returns a data frame with three columns:
+* `topmed_subject_id`
+* `example_weight`: the harmonized data value for the corresponding `topmed_subject_id`. Note that the `concept_variant` number is not part of this column name.
+* `age`: the age at measurement of the target variable.
+
+We'll run the harmonization function on the `phen_list` list that we just created.
+```{r}
+out <- harmonize(phen_list)
+head(out)
+```
+
+As before, complete the harmonization for the second unit by renaming variables to include the concept variant number, and adding the unique subject we created earlier to the data frame.
+```{r}
+harmonized_studyb <- out %>%
+  rename(
+    example_weight_1 = example_weight,
+    age_at_example_weight_1 = age
+  ) %>%
+  left_join(subj, by = "topmed_subject_id") %>%
+  select(
+    SUBJECT_ID,
+    unique_subject_key,
+    topmed_subject_id,
+    example_weight_1,
+    age_at_example_weight_1
+  )
+head(harmonized_studyb)
+```
+
+
+## Combine data from both harmonization units
+
+After completing harmonization of all desired harmonization units, we only need to concatenate the data frames for all units:
+```{r}
+harmonized <- bind_rows(harmonized_studya, harmonized_studyb)
+head(harmonized)
+tail(harmonized)
+```
+## Final checks
+
+We'll do a final check on the subject id mapping.
+We need to make sure that there is a one-to-one mapping between `topmed_subject_id` and `unique_subject_key` across the entire harmonized data frame.
+```{r}
+mapping <- harmonized %>%
+  select(unique_subject_key, topmed_subject_id)
+
+stopifnot(all(!duplicated(mapping$unique_subject_key)))
+stopifnot(all(!duplicated(mapping$topmed_subject_id)))
+```
+If these checks fail, you will need to verify that you created the `topmed_subject_id` values with a different `unique_id` for each different study accession on dbGaP.
+
+
+## Save the harmonized data
+
+Finally, save the harmonized data, in case you want to use them to harmonize a new variable.
+```{r}
+readr::write_tsv(harmonized, "example_weight_1.tsv")
+```
+
+To check if you have run the harmonization correctly, please compare this file against the harmonized data in the `example_data/harmonized/example_weight_1.tsv` file.
+
+```{r}
+check <- readr::read_tsv("example_data/harmonized/example_weight_1.tsv")
+stopifnot(all_equal(check, harmonized))
+```

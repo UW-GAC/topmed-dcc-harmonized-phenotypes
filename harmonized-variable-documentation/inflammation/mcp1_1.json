@@ -1,0 +1,35 @@
+{
+  "name": "mcp1_1",
+  "phenotype_concept": "mcp1",
+  "concept_variant": 1,
+  "description": "Monocyte chemoattractant protein-1 (MCP1), also known as C-C motif chemokine ligand 2, concentration in blood.",
+  "version": 1,
+  "dcc_harmonization_id": 139,
+  "data_type": "decimal",
+  "measurement_units": "pg / mL",
+  "has_age_variable": true,
+  "date_harmonized": "2019-04-15 15:43:07",
+  "dcc_harmonization_comments": "This variable was harmonized by converting the component study variables to the appropriate unit of measure as needed and, when possible, accounting for measurements outside an assay's limits of detection (LOD). If the information was available, measurements below the lower limit of detection (LLOD) were set to the LLOD and measurements above the upper limit of detection (ULOD) were set to the ULOD unless otherwise indicated in the study-specific sections below. Some studies identified subjects with measurements outside the LOD; see table below for more details. The assay(s) used to measure MCP1 concentration from serum or plasma differed by study and/or subcohort.\n\n#### FHS\n\nThe *_FHS_* New Offspring Spouse and Omni 1 Cohorts included a variable on dbGaP (phv00172235) indicating which plate a sample was assayed on. Plate differences in MCP1 concentrations were observed after adjusting for age and sex.  \n\nThe *_FHS_* Original and Omni 2 Cohorts are not included in this harmonized phenotype at this time.\n\n#### Exam visit for MCP1 measurements\n\n| Study or subcohort | Visit |\n|---------|----------|\n| FHS_Offspring | Exam 7 |\n| FHS_NewOffspringSpouse | Exam 1 |\n| FHS_Gen3 | Exam 1 |\n| FHS_Omni1 | Exam 3 |\n\n#### Assay and limits of detection for MCP1 measurements\n\n| Study or subcohort | Assay | LLOD | ULOD | Differentiated^1^ |\n|---------|----------|---------|---------|---------|\n| FHS | ELISA | < 5.0 pg/mL |  NA  | No |\n\n1. The study included information indicating which measurements were below or above the limit of detection. If \"Yes\", measurements outside the LOD can be identified using component study or subcohort variables.\n\n#### Specimen type for MCP1 measurements\n\nTable includes studies or subcohorts with known specimen types only.\n\n| Study or subcohort | Specimen |\n|---------|----------|\n| FHS | Serum |\n",
+  "encoded_values": [],
+  "controlled_vocabulary": [
+    {
+      "source": "UMLS",
+      "version": "2018AB",
+      "id": "C0128897"
+    }
+  ],
+  "harmonization_units": [
+    {
+      "name": "FHS_Gen3_Offspring",
+      "component_study_variables": ["phs000007.v29.pht000165.v6.phv00023811.v5", "phs000007.v29.pht000306.v6.phv00036415.v4", "phs000007.v29.pht003099.v4.phv00177930.v4", "phs000007.v29.pht003099.v4.phv00177942.v4"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  #Dataset\n  ##Offspring, exam 7\n  mcp_of <- left_join(phen_list$source_data$pht000165,\n                      phen_list$source_data$pht003099,\n                      by = 'topmed_subject_id') %>%\n            select(topmed_subject_id, mcp1, age = age7)\n  ##Generation 3, exam 1\n  mcp_g3 <- left_join(phen_list$source_data$pht000306,\n                      phen_list$source_data$pht003099,\n                      by = 'topmed_subject_id') %>%\n            select(topmed_subject_id, mcp1, age = age1)\n  ##Combined\n  dataset <- bind_rows(mcp_of, mcp_g3)\n\n  #Converting to numeric variables\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  # Remove records with NAs from dataset.\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "FHS_NewOffspringSpouse_Omni1",
+      "component_study_variables": ["phs000007.v29.pht002893.v4.phv00172239.v4", "phs000007.v29.pht003099.v4.phv00177928.v4", "phs000007.v29.pht003099.v4.phv00177930.v4", "phs000007.v29.pht003099.v4.phv00177934.v4"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  #Dataset\n  dataset <- left_join(phen_list$source_data$pht002893,\n                       phen_list$source_data$pht003099,\n                       by = 'topmed_subject_id')\n\n  #Removing Offspring subcohort\n  dataset <- subset(dataset, idtype == 2 | idtype == 7)\n\n  #Assigning correct age for visit\n  dataset$age <- ifelse(dataset$idtype == 2, dataset$age1, dataset$age3)\n\n  #Select age and MCP1\n  dataset <- select(dataset, topmed_subject_id, mcp1, age)\n\n  #Converting to numeric variables\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  # Remove records with NAs from dataset.\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    }
+  ]
+}

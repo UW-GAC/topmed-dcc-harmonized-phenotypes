@@ -1,0 +1,31 @@
+# Study accession: phs001986.v1.p1
+# Table accession: pht009924.v1.p1
+# Consent group: All
+# Citation instructions: The study accession (phs001986.v1.p1) is used to cite the study and its data tables and documents. The data in this file should be cited using the accession pht009924.v1.p1.
+# To cite columns of data within this file, please use the variable (phv#) accessions below:
+#
+# 1) the table name and the variable (phv#) accessions below; or
+# 2) you may cite a variable as phv#.v1.p1
+
+##	phv00427212.v1.p1	phv00427213.v1.p1
+dbGaP_Subject_ID	SUBJECT_ID	CONSENT
+3243287	s0415	2
+3243288	s0463	1
+3243281	s0179	1
+3243289	s0526	1
+3243282	s0195	1
+3243296	s0938	2
+3243295	s0818	2
+3243280	s0118	1
+3243285	s0299	2
+3243283	s0229	1
+3243284	s0244	2
+3243278	s0014	1
+3243286	s0374	2
+3243292	s0665	2
+3243290	s0602	1
+3243291	s0603	1
+3243294	s0768	1
+3243293	s0709	1
+3243279	s0091	2
+3243297	s0953	1

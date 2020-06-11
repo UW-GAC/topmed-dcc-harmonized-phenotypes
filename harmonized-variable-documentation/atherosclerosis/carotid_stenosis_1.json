@@ -1,0 +1,66 @@
+{
+  "name": "carotid_stenosis_1",
+  "phenotype_concept": "carotid_stenosis",
+  "concept_variant": 1,
+  "description": "Extent of narrowing of the carotid artery.",
+  "version": 1,
+  "dcc_harmonization_id": 87,
+  "data_type": "encoded",
+  "measurement_units": null,
+  "has_age_variable": true,
+  "date_harmonized": "2018-05-30 13:32:01",
+  "dcc_harmonization_comments": "This variable was harmonized by calculating the maximum of left and right carotid artery stenosis grade where possible, or by selecting an existing maximum stenosis variable. Component study variables estimated narrowing using a combination of visual inspection and ultrasound Doppler values.\n\n#### CHS\n\nBaseline carotid ultrasound scans for the Original cohort were reread due to reader drift. Reread measurements of *_CHS_* subjects were used for harmonization.[^1]\n\n#### FHS\n\n*_FHS_* measured stenosis in the common carotid, internal carotid and bulb.\n\n#### MESA \n\n*_MESA_* measured stenosis in the internal carotid and the bulb.\n\nThe *_MESA_* Family subcohort is not included in this harmonized phenotype at this time.\n\n#### Instrumentation\n\nStudies used different instruments at their carotid ultrasound exams:\n\n| Study    | Instrument       |\n|----------|------------------|\n| CHS      | Toshiba SSA-270A |\n| FHS      | Toshiba SSH-140A |\n| MESA     | GE Logiq 700     |\n\n\n[^1]:[Documentation Without Data Collection Forms phd002779.1](https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/document.cgi?study_id=phs000287.v6.p1&phd=2779)\n",
+  "encoded_values": [
+    {
+      "code": "0",
+      "value": "None"
+    },
+    {
+      "code": "1",
+      "value": "1%-24%"
+    },
+    {
+      "code": "2",
+      "value": "25%-49%"
+    },
+    {
+      "code": "3",
+      "value": "50%-74%"
+    },
+    {
+      "code": "4",
+      "value": "75%-99%"
+    },
+    {
+      "code": "5",
+      "value": "100%"
+    }
+  ],
+  "controlled_vocabulary": [
+    {
+      "source": "UMLS",
+      "version": "2019AA",
+      "id": "C0007282"
+    }
+  ],
+  "harmonization_units": [
+    {
+      "name": "CHS",
+      "component_study_variables": ["phs000287.v6.pht001452.v1.phv00100290.v1", "phs000287.v6.pht001452.v1.phv00100487.v1", "phs000287.v6.pht001473.v1.phv00101302.v1", "phs000287.v6.pht001473.v1.phv00101303.v1", "phs000287.v6.pht001473.v1.phv00101313.v1", "phs000287.v6.pht001473.v1.phv00101314.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Join age data and lesion data.\n  dataset <- plyr::join_all(phen_list$source_data)\n\n  # Code any missing values to NA\n  dataset$PSTEN141[dataset$PSTEN141 %in% '9'] <- NA\n  dataset$PSTEN241[dataset$PSTEN241 %in% '9'] <- NA\n  dataset$PSTEN155[dataset$PSTEN155 %in% '9'] <- NA\n  dataset$PSTEN255[dataset$PSTEN255 %in% '9'] <- NA\n\n  # Rename age and lesion variables.\n  dataset <- rename(dataset, age = AGEBL,\n                             subcohort = PERSTAT,\n                             stenRT_aa = PSTEN141,\n                             stenLFT_aa = PSTEN241,\n                             stenRT_orig = PSTEN155,\n                             stenLFT_orig = PSTEN255)\n\n  # Convert from character to numeric.\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  # Get subset of cohort 1 and create stenosis variable.\n  dataset_orig <- subset(dataset, select = c(topmed_subject_id,\n                                             age,\n                                             subcohort,\n                                             stenRT_orig,\n                                             stenLFT_orig))\n\n  dataset_orig <- dataset_orig[dataset_orig$subcohort == 1, ] %>%\n\n    # Only include rows with at least one measurement.\n    filter(!(is.na(stenRT_orig) & is.na(stenLFT_orig)))\n\n  # Isolate left and right stenosis variables.\n  sten_lft_rt_1 <- c(\"stenRT_orig\", \"stenLFT_orig\")\n\n  # Take maximum stenosis value of left and right sides.\n  dataset_orig$max_sten <- apply(dataset_orig[, sten_lft_rt_1], 1,\n                              function(x) ifelse(all(is.na(x)), NA, max(x, na.rm = TRUE)))\n\n  # Get subset of cohort 2 and create stenosis variable.\n  dataset_new <- subset(dataset, select = c(topmed_subject_id,\n                                            age,\n                                            subcohort,\n                                            stenRT_aa,\n                                            stenLFT_aa))\n\n  dataset_new <- dataset_new[dataset_new$subcohort == 2, ] %>%\n\n    # Only include rows with at least one measurement.\n    filter(!(is.na(stenRT_aa) & is.na(stenLFT_aa)))\n\n  # Isolate left and right stenosis variables.\n  sten_lft_rt_2 <- c(\"stenRT_aa\", \"stenLFT_aa\")\n\n  # Take maximum stenosis value of left and right sides.\n  dataset_new$max_sten <- apply(dataset_new[, sten_lft_rt_2], 1,\n                              function(x) ifelse(all(is.na(x)), NA, max(x, na.rm = TRUE)))\n\n\n  # Combine max stenosis variable from both cohorts.\n  dataset_orig <- subset(dataset_orig, select = c(topmed_subject_id, age, max_sten))\n  dataset_new <- subset(dataset_new, select = c(topmed_subject_id, age, max_sten))\n  dataset <- dplyr::full_join(dataset_orig,\n                               dataset_new,\n                               by = c(\"topmed_subject_id\", \"age\", \"max_sten\")) %>%\n\n    # Rename max_sten to stenosis\n    rename(carotid_stenosis = max_sten) %>%\n\n    # Convert stenosis to character and select topmed ID and age variables.\n    transmute(topmed_subject_id, age, carotid_stenosis = as.character(carotid_stenosis))\n\n\n\n  # Remove NAs.\n  dataset <- na.omit(dataset)\n\n\n  return(dataset)\n\n}\n"
+    },
+    {
+      "name": "FHS",
+      "component_study_variables": ["phs000007.v29.pht000083.v6.phv00021700.v5", "phs000007.v29.pht000083.v6.phv00021702.v5", "phs000007.v29.pht003099.v4.phv00177940.v4"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  harmonized <- phen_list$source_data$pht000083 %>%\n    # Only include rows with at least one measurement.\n    filter(!(is.na(R_STENO) & is.na(L_STENO))) %>%\n    # Convert character vectors to numeric.\n    mutate_if(is.character, as.numeric) %>%\n    # Perform calculations row-wise.\n    rowwise() %>%\n    # Code stenosis as max of left and right stenosis.\n    mutate(carotid_stenosis = as.character(max(R_STENO, L_STENO, na.rm = TRUE))) %>%\n    # Join stenosis and age data.\n    left_join(phen_list$source_data$pht003099, \"topmed_subject_id\") %>%\n    # Select relevant variables, and rename/convert age variable.\n    transmute(topmed_subject_id, carotid_stenosis, age = as.numeric(age6)) %>%\n    # Exclude rows with missing data.\n    na.omit()\n  return(harmonized)\n}\n"
+    },
+    {
+      "name": "MESA",
+      "component_study_variables": ["phs000209.v13.pht001111.v4.phv00082639.v2", "phs000209.v13.pht001116.v10.phv00084442.v3", "phs000209.v13.pht001116.v10.phv00084798.v2", "phs000209.v13.pht001116.v10.phv00084803.v2", "phs000209.v13.pht001121.v3.phv00087071.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  harmonized <- phen_list$source_data$pht001116 %>%\n    # Convert character vectors to numeric.\n    mutate_if(is.character, as.numeric) %>%\n    # Recode 6 as 0, and 7 and 8 as NA.\n    mutate_at(vars(rsten1, lsten1), funs(ifelse(. == 6, 0, .) %>% na_if(7) %>% na_if(8))) %>%\n    # Specify transformations will be row-wise.\n    rowwise() %>%\n    # Subset to rows with values for at least one stenosis variable.\n    filter(!(is.na(rsten1) & is.na(lsten1))) %>%\n    # Convert and rename age, and calculate maximum stenosis.\n    transmute(topmed_subject_id, age = as.numeric(age1c),\n              carotid_stenosis = as.character(max(rsten1, lsten1, na.rm = TRUE))) %>%\n    # Exclude rows with any missing data.\n    na.omit()\n  return(harmonized)\n}\n"
+    }
+  ]
+}

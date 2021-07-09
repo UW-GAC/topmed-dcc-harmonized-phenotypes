@@ -116,3 +116,8 @@ See the Example Harmonization section above for more information.
 We do not provide participant consent values with the harmonized phenotype documentation.
 Because the harmonized data are derived from data on dbGaP, the consent type for a given participant's harmonized data is inherited from the dbGaP data used as components for the harmonization.
 Users must therefore ensure that the harmonized data are used in accordance with the data use limitations for each consent group to which they have access.
+
+## Race and ancestry guidelines
+
+This repository contains documentation for harmonization of race and ethnicity variables in TOPMed.
+If you wish to use them in your analysis, please refer to the [Guidelines on the use and reporting of race, ethnicity, and ancestry in the NHLBI Trans-Omics for Precision Medicine (TOPMed) program](https://www.nhlbiwgs.org/guidelines-use-and-reporting-race-ethnicity-and-ancestry-topmed).

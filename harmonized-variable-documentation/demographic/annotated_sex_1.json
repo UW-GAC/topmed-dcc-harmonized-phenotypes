@@ -3,13 +3,13 @@
   "phenotype_concept": "annotated_sex",
   "concept_variant": 1,
   "description": "Subject sex, as recorded by the study.",
-  "version": 4,
-  "dcc_harmonization_id": 96,
+  "version": 5,
+  "dcc_harmonization_id": 154,
   "data_type": "encoded",
   "measurement_units": null,
   "has_age_variable": false,
-  "date_harmonized": "2018-07-31 15:18:33",
-  "dcc_harmonization_comments": "This variable was harmonized by renaming and recoding component study variables. Note that it is possible for annotated sex to differ from genetic sex.\n\n#### WHI\n\n*_WHI_* is an all female study, so all consented subjects were assigned the value \"`female`\" for this harmonized variable.\n",
+  "date_harmonized": "2019-10-29 09:41:00",
+  "dcc_harmonization_comments": "This variable was harmonized by renaming and recoding component study variables. Note that it is possible for annotated sex to differ from genetic sex.\n\n### Study-specific comments\n\n#### WGHS\n\nAll subjects are female due to recruitment criteria. \n\n#### WHI\n\n*WHI* is an all female study, so all consented subjects were assigned the value \"`female`\" for this harmonized variable.\n",
   "encoded_values": [
     {
       "code": "female",
@@ -30,15 +30,21 @@
   "harmonization_units": [
     {
       "name": "Amish",
-      "component_study_variables": ["phs000956.v2.pht005002.v1.phv00252975.v1"],
+      "component_study_variables": ["phs000956.v3.pht005002.v1.phv00252975.v1"],
       "component_harmonized_variables": [],
       "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n  # harmonize sex for Amish\n\n    source_data <- phen_list$source_data\n    dat <- source_data[[\"pht005002\"]]\n\n   dat <- dat %>% filter(!is.na(SEX)) %>%\n        mutate(annotated_sex = ifelse(SEX %in% \"M\", \"male\", \"female\")) %>%\n        select(topmed_subject_id, annotated_sex)\n\n   return(dat)\n}\n"
     },
     {
       "name": "ARIC",
-      "component_study_variables": ["phs000280.v4.pht004063.v2.phv00204711.v1"],
+      "component_study_variables": ["phs000280.v5.pht004063.v2.phv00204711.v1"],
       "component_harmonized_variables": [],
       "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n # harmonize gender for ARIC; use first visit\n\n   source_data <- phen_list$source_data\n\n   # visit 1 data\n\n    dat <- source_data[[\"pht004063\"]]\n\n    dat <- dat %>% filter(!is.na(GENDER)) %>%\n          mutate(annotated_sex = ifelse(GENDER %in% \"M\", \"male\", \"female\"))\n\n   dat <- dat %>% select(topmed_subject_id, annotated_sex)\n\n   return(dat)\n}\n"
+    },
+    {
+      "name": "BAGS",
+      "component_study_variables": ["phs001143.v2.pht005905.v2.phv00273212.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  dataset <- phen_list$source_data$pht005905\n\n  #Sex levels\n  dataset$annotated_sex <- ifelse(dataset$SEX == 1, 'male',\n    ifelse(dataset$SEX == 2, 'female', NA))\n\n  #Select variables and remove missing\n  dataset <- select(dataset, topmed_subject_id, annotated_sex) %>%\n  na.omit() %>%\n  return()\n}\n"
     },
     {
       "name": "CARDIA",
@@ -47,8 +53,14 @@
       "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n # harmonize gender for CARDIA\n    source_data <- phen_list$source_data\n\n   dat <- source_data[[\"pht001645\"]]\n\n   dat <- dat %>% filter(!is.na(SEX)) %>%\n          mutate(annotated_sex = ifelse(SEX == 2, \"female\", \"male\")) %>%\n          select(topmed_subject_id, annotated_sex)\n\n   return(dat)\n}\n"
     },
     {
+      "name": "CCAF",
+      "component_study_variables": ["phs001189.v2.pht005979.v2.phv00273548.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Get dataset and rename variables.\n  dataset <- phen_list$source_data$pht005979 %>%\n             rename(annotated_sex = sex)\n\n  # Substitute the value of 'NA' to missing.\n  dataset$annotated_sex[dataset$annotated_sex %in% 'NA'] <- NA\n\n  # Remove records with NAs from dataset.\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
       "name": "CFS",
-      "component_study_variables": ["phs000284.v1.pht001902.v1.phv00122012.v1", "phs000284.v1.pht001902.v1.phv00122989.v1"],
+      "component_study_variables": ["phs000284.v2.pht001902.v1.phv00122012.v1", "phs000284.v2.pht001902.v1.phv00122989.v1"],
       "component_harmonized_variables": [],
       "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n    source_data <- phen_list$source_data\n    dat <- source_data[[\"pht001902\"]]\n\n  # harmonize sex for CFS; first available visit\n # 1=Male;0=Female\n # male if variable = 1; female if variable = 0\n\n   dat <- dat %>% filter(!is.na(male))\n   dat$visit <- as.integer(dat$visit)\n   dat <- dat[order(dat$visit), ]\n\n   dat2 <- dat %>% tbl_df() %>%\n       arrange(topmed_subject_id) %>%\n        group_by(topmed_subject_id) %>% slice(1)\n\n   datt <- dat2 %>% mutate(annotated_sex = ifelse(male == 1, \"male\", \"female\"))\n\n   datt <- datt %>% select(topmed_subject_id, annotated_sex)\n\n   return(datt)\n}\n"
     },
@@ -71,14 +83,32 @@
       "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n # harmonize gender for CRA\n\n    source_data <- phen_list$source_data\n\n    dat <- source_data[[\"pht005248\"]]\n\n   dat <- dat %>% filter(!is.na(gender)) %>%\n          mutate(annotated_sex = ifelse(gender %in% \"M\", \"male\", \"female\")) %>%\n          select(topmed_subject_id, annotated_sex)\n\n   return(dat)\n}\n"
     },
     {
+      "name": "DHS",
+      "component_study_variables": ["phs001412.v1.pht006746.v1.phv00310017.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Dataset\n  dataset <- phen_list$source_data$pht006746\n  # Recoding male and female values\n  dataset$annotated_sex <- ifelse(dataset$SEX == 'M',\n                                  'male',\n                                  'female')\n  #Selecting final harmonized variables\n  dataset <- select(dataset, topmed_subject_id, annotated_sex)\n\n  return(dataset)\n}\n"
+    },
+    {
       "name": "FHS",
-      "component_study_variables": ["phs000007.v29.pht003099.v4.phv00177929.v4"],
+      "component_study_variables": ["phs000007.v30.pht003099.v5.phv00177929.v5"],
       "component_harmonized_variables": [],
       "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n # harmonize gender FHS\n\n   source_data <- phen_list$source_data\n\n    dat <- source_data[[\"pht003099\"]]\n    w <- which(is.element(dat, \".\"))\n    dat[w] <- NA\n\n    dat <- dat %>% filter(!is.na(sex)) %>%\n        mutate(annotated_sex = ifelse(sex %in% 1, \"male\", \"female\"))\n\n    datt <- dat %>% select(topmed_subject_id, annotated_sex)\n\n   return(datt)\n}\n"
     },
     {
+      "name": "GALAII",
+      "component_study_variables": ["phs001180.v1.pht006991.v1.phv00320631.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  #Dataset\n  dataset <- phen_list$source_data$pht006991 %>%\n  rename(annotated_sex = SEX)\n\n  #Rename levels\n  dataset$annotated_sex <- ifelse(dataset$annotated_sex == 'Male',\n                                  'male', 'female')\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "GeneSTAR",
+      "component_study_variables": ["phs001218.v1.pht007766.v1.phv00369267.v1", "phs001218.v1.pht007766.v1.phv00369269.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  #Datasets\n  int <- phen_list$source_data$pht007766\n  #Order of levels\n  int$VISIT <- int$VISIT %>%\n               as.factor() %>%\n               relevel('SSV')\n  #Subset to baseline visits, SSV and PSV\n  dataset <- int %>%\n             filter(VISIT %in% c('SSV', 'PSV')) %>%\n             mutate(VISIT = as.factor(VISIT)) %>%\n             group_by(topmed_subject_id) %>%\n             arrange(topmed_subject_id, VISIT) %>%\n             filter(row_number(topmed_subject_id) == 1) %>%\n             ungroup() %>%\n             data.frame()\n\n  #Reassigning values\n  dataset$SEX <- ifelse(dataset$SEX == '0', 'male', 'female')\n\n  #Rename harmonized variable\n  dataset <- select(dataset, topmed_subject_id, annotated_sex = SEX)\n\n  return(dataset)\n}\n"
+    },
+    {
       "name": "GENOA",
-      "component_study_variables": ["phs001238.v1.pht006039.v1.phv00277506.v1", "phs001238.v1.pht006653.v1.phv00307787.v1"],
+      "component_study_variables": ["phs001238.v2.pht006039.v1.phv00277506.v1", "phs001238.v2.pht006653.v1.phv00307787.v1"],
       "component_harmonized_variables": [],
       "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n # harmonize annotated sex for GENOA\n    source_data <- phen_list$source_data\n\n# GENDER coded as \"Female\" or \"Male\"\n\n   dat1 <- source_data[[\"pht006039\"]]   # AA sub-study\n   dat2 <- source_data[[\"pht006653\"]]   # EA sub_study\n   dat <- rbind(dat1, dat2)\n\n# filter for non-missing values\n# assign harmonized names \"male\" and \"female\"\n# select subject id and ethnicity\n   dat <- dat %>% filter(!is.na(GENDER)) %>%\n           mutate(annotated_sex = ifelse(GENDER %in% \"Male\", \"male\", \"female\")) %>%\n           select(topmed_subject_id, annotated_sex)\n\n   return(dat)\n}\n"
     },
@@ -107,10 +137,16 @@
       "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n  # harmonize sex for JHS\n\n    source_data <- phen_list$source_data\n    dat <- source_data[[\"pht001949\"]]\n\n # 1= male 0 = female\n\n   dat <- dat %>% filter(!is.na(GENDER)) %>%\n        mutate(annotated_sex = ifelse(GENDER %in% 1, \"male\", \"female\")) %>%\n        select(topmed_subject_id, annotated_sex)\n\n   return(dat)\n}\n"
     },
     {
-      "name": "Mayo_VTE",
+      "name": "Mayo_VTE_GENEVA",
       "component_study_variables": ["phs000289.v2.pht001886.v2.phv00121845.v1"],
       "component_harmonized_variables": [],
       "harmonization_function": "harmonize <- function(phen_list){\n\n# harmonize annotated sex for Mayo_VTE (parent Mayo)\n\n  datt <- phen_list$source_data[[\"pht001886\"]]\n\n  datt <- datt %>% filter(!is.na(gender)) %>%\n             mutate(annotated_sex = ifelse(gender %in% \"M\", \"male\", \"female\")) %>%\n             select(topmed_subject_id, annotated_sex) %>% na.omit\n\n   return(datt)\n}\n"
+    },
+    {
+      "name": "Mayo_VTE_Olmsted",
+      "component_study_variables": ["phs001402.v1.pht008239.v1.phv00389901.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  dataset <- phen_list$source_data$pht008239 %>%\n             mutate(annotated_sex = ifelse(gender == 'M',\n                                       'male',\n                                       'female')) %>%\n             select(topmed_subject_id, annotated_sex)\n\n  return(dataset)\n}\n"
     },
     {
       "name": "MESA_AirNR",
@@ -131,10 +167,46 @@
       "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n # harmonize gender for MESA Family\n\n    source_data <- phen_list$source_data\n\n   # visit 1 data\n    dat <- source_data[[\"pht001121\"]]\n\n    datt <- dat %>% filter(!is.na(genderf)) %>%\n          mutate(annotated_sex = ifelse(genderf %in% 1, \"male\", \"female\")) %>%\n          select(topmed_subject_id, annotated_sex)\n\n   return(datt)\n}\n"
     },
     {
+      "name": "MGH_AF",
+      "component_study_variables": ["phs001001.v1.pht005655.v1.phv00354562.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  dataset <- phen_list$source_data$pht005655 %>%\n             select(topmed_subject_id, annotated_sex = sex)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "Partners",
+      "component_study_variables": ["phs001024.v3.pht005693.v1.phv00265979.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n\n  #Dataset\n  dataset <- phen_list$source_data$pht005693 %>%\n             rename(annotated_sex = sex)\n\n  return(dataset)\n\n}\n"
+    },
+    {
+      "name": "SAGE",
+      "component_study_variables": ["phs000921.v3.pht004883.v3.phv00252284.v3"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  #Dataset\n  dataset <- phen_list$source_data$pht004883 %>%\n             rename(annotated_sex = SEX)\n\n  #Assigning missing and converting to factor variable\n  dataset <- replace(dataset, dataset == 'NA', NA) %>%\n             mutate(annotated_sex = as.factor(annotated_sex))\n\n  #Assigning correct levels\n  levels(dataset$annotated_sex) <- c('female', 'male')\n\n  #Remove missing\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
       "name": "SAS",
       "component_study_variables": ["phs000914.v1.pht005253.v1.phv00258679.v1"],
       "component_harmonized_variables": [],
       "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n  # harmonize sex for Samoan\n\n    source_data <- phen_list$source_data\n    dat <- source_data[[\"pht005253\"]]\n\n   dat <- dat %>% filter(!is.na(Gender)) %>%\n        mutate(annotated_sex = ifelse(Gender %in% 1, \"male\", \"female\")) %>%\n        select(topmed_subject_id, annotated_sex)\n\n   return(dat)\n}\n"
+    },
+    {
+      "name": "VAFAR",
+      "component_study_variables": ["phs000997.v3.pht005688.v3.phv00265923.v3"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Get dataset and rename variables.\n  dataset <- phen_list$source_data$pht005688 %>%\n             rename(annotated_sex = sex)\n\n  # Substitute the value of 'NA' to missing.\n  dataset$annotated_sex[dataset$annotated_sex %in% 'NA'] <- NA\n\n  # Remove records with NAs from dataset.\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "VU_AF",
+      "component_study_variables": ["phs001032.v4.pht005675.v3.phv00265807.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Get dataset and rename variables.\n  dataset <- phen_list$source_data$pht005675 %>%\n             rename(annotated_sex = sex)\n\n  # Substitute the value of 'NA' to missing.\n  dataset$annotated_sex[dataset$annotated_sex %in% 'NA'] <- NA\n\n  # Remove records with NAs from dataset.\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "WGHS",
+      "component_study_variables": ["phs001040.v3.pht005682.v3.phv00265850.v3"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  #Dataset\n  dataset <- phen_list$source_data$pht005682 %>%\n             rename(annotated_sex = sex)\n\n  return(dataset)\n}\n"
     },
     {
       "name": "WHI",

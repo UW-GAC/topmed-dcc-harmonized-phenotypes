@@ -3,13 +3,13 @@
   "phenotype_concept": "geographic_site",
   "concept_variant": 1,
   "description": "Recruitment/field center, baseline clinic, or geographic region.",
-  "version": 4,
-  "dcc_harmonization_id": 98,
+  "version": 5,
+  "dcc_harmonization_id": 155,
   "data_type": "encoded",
   "measurement_units": null,
   "has_age_variable": false,
-  "date_harmonized": "2018-07-31 15:51:38",
-  "dcc_harmonization_comments": "For studies with multiple exams or visits, baseline (visit 1) clinic was recorded for this variable. All harmonized values are prepended with the study name abbreviation to ensure that values are unique across studies.\n\n#### GENOA\n\nThis study does not provide a specific variable containing this information. However, the dbGaP study page (phs001238) contains the information that the African-American cohort participants were recruited from Jackson, MS, and that the European-American cohort participants were recruited from Rochester, MN. To determine cohort membership, and thus geographic site, for each subject, the study variable `GENDER` from cohort-specific datasets was used as a component variable for this harmonized trait even though the values in the `GENDER` variable are not used.\n",
+  "date_harmonized": "2019-10-29 09:51:05",
+  "dcc_harmonization_comments": "For studies with multiple exams or visits, baseline (visit 1) clinic was recorded for this variable. All harmonized values are prepended with the study name abbreviation to ensure that values are unique across studies.\n\n### Study-specific comments\n\n#### GENOA\n\nThis study does not provide a specific variable containing this information. However, the dbGaP study page (phs001238) contains the information that the African-American cohort participants were recruited from Jackson, MS, and that the European-American cohort participants were recruited from Rochester, MN. To determine cohort membership, and thus geographic site, for each subject, the study variable `GENDER` from cohort-specific datasets was used as a component variable for this harmonized trait even though the values in the `GENDER` variable are not used.\n\n#### Mayo_VTE_GENEVA \n\nThis study was removed from this harmonized variable version to maintain consistency with the other harmonized studies and variable definition. All subjects were recruited and had baseline measurements at Mayo Clinic Rochester although their home residence may have been located in a different state or country.\n",
   "encoded_values": [
     {
       "code": "ARIC_A",
@@ -192,26 +192,6 @@
       "value": "recruitment from unknown county in MS, USA for JHS (Jackson Heart Study)"
     },
     {
-      "code": "Mayo_VTE_Midwest_US",
-      "value": "state of residence (at time of enrollment for Mayo_VTE study) is in the South region of the USA as defined by the Census Bureau"
-    },
-    {
-      "code": "Mayo_VTE_Northeast_US",
-      "value": "state of residence (at time of enrollment for Mayo_VTE study) is in the Northeast region of the USA as defined by the Census Bureau"
-    },
-    {
-      "code": "Mayo_VTE_non_US",
-      "value": "state of residence (at time of enrollment for Mayo_VTE study) is from a country outside the USA"
-    },
-    {
-      "code": "Mayo_VTE_South_US",
-      "value": "state of residence (at time of enrollment for Mayo_VTE study) is in the Midwest region of the USA as defined by the Census Bureau"
-    },
-    {
-      "code": "Mayo_VTE_West_US",
-      "value": "state of residence (at time of enrollment for Mayo_VTE study) is in the West region of the USA as defined by the Census Bureau"
-    },
-    {
       "code": "MESA_COL",
       "value": "field center/baseline clinic at Columbia University, NY, USA for MESA (Multi-Ethnic Study of Atherosclerosis Cohort)"
     },
@@ -278,7 +258,7 @@
   "harmonization_units": [
     {
       "name": "ARIC",
-      "component_study_variables": ["phs000280.v4.pht004063.v2.phv00204813.v1"],
+      "component_study_variables": ["phs000280.v5.pht004063.v2.phv00204813.v1"],
       "component_harmonized_variables": [],
       "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  library(magrittr)\n\n # harmonize recruitment site for ARIC\n # 4 anonymized centers where exams were conducted; values A, B, C, D\n # The ARIC dbGaP study site acknowledges four communities:\n # Forsyth County, NC; Jackson, MS; the northwest suburbs of Minneapolis, MN;\n # and Washington County, MD.\n # The correspondence of the four communities with the values A, B, C, D is not given.\n\n # CENTERID variable given for each exam\n # we use Exam 1 center as the recruitment site\n\n source_data <- phen_list$source_data\n dat <- source_data[[\"pht004063\"]]\n\n # Select and rename relevant traits\n dat <- dat %>% transmute(topmed_subject_id, geographic_site = CENTERID) %>%\n    # omit incomplete records\n    na.omit()\n\n  # concatenate values with study abbrev to insure unique values across studies\n dat <- dat %>% mutate(geographic_site = paste(\"ARIC\", geographic_site, sep = \"_\"))\n\n return(dat)\n}\n"
     },
@@ -302,7 +282,7 @@
     },
     {
       "name": "GENOA",
-      "component_study_variables": ["phs001238.v1.pht006039.v1.phv00277506.v1", "phs001238.v1.pht006653.v1.phv00307787.v1"],
+      "component_study_variables": ["phs001238.v2.pht006039.v1.phv00277506.v1", "phs001238.v2.pht006653.v1.phv00307787.v1"],
       "component_harmonized_variables": [],
       "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n\n # harmonize geographic_site (recruitment site)for GENOA\n    source_data <- phen_list$source_data\n\n# from study dbgap page: AA study from Jackson, MS and EA study from Rochester, MN\n# concatenate values with study abbrev to insure unique values across studies\n\n   dat1 <- source_data[[\"pht006039\"]]   # AA sub-study\n   dat1 <- dat1 %>% mutate(geographic_site = \"GENOA_MS\")\n\n   dat2 <- source_data[[\"pht006653\"]]   # EA sub_study\n   dat2 <- dat2 %>% mutate(geographic_site = \"GENOA_MN\")\n\n   dat <- rbind(dat1, dat2)\n\n   dat <- dat %>% select(topmed_subject_id, geographic_site)\n\n   return(dat)\n}\n"
     },
@@ -323,12 +303,6 @@
       "component_study_variables": ["phs000286.v5.pht001949.v1.phv00126005.v1"],
       "component_harmonized_variables": [],
       "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  library(magrittr)\n\n # harmonize recruitment site for JHS\n # given as counties in Missisippi\n # COUNTY has values \"Hinds\", \"Madison\", \"Rankin\", \"Unkn\" (Unknown)\n\n source_data <- phen_list$source_data\n dat <- source_data[[\"pht001949\"]]\n\n # select subjects with COUNTY = \"Unkn\"  or missing and change value to \"Unknown\"\n sel <- dat$COUNTY %in% \"Unkn\" | is.na(dat$COUNTY)\n dat$COUNTY[sel] <- \"Unknown\"\n\n # Select and rename relevant traits\n dat <- dat %>% transmute(topmed_subject_id, geographic_site = COUNTY)\n\n  # concatenate values with study abbrev to insure unique values across studies\n dat <- dat %>% mutate(geographic_site = paste(\"JHS\", geographic_site, sep = \"_\"))\n\n return(dat)\n}\n"
-    },
-    {
-      "name": "Mayo_VTE",
-      "component_study_variables": ["phs000289.v2.pht001886.v2.phv00121847.v1"],
-      "component_harmonized_variables": [],
-      "harmonization_function": "harmonize <- function(phen_list){\n\n# harmonize geographic_site for GWAS_VTE (parent Mayo)\n# state_enroll gives state of residence at time of enrollment\n# group US states into Census Bureau regions: Northeast, Midwest, South, West\n\n  datt <- phen_list$source_data[[\"pht001886\"]]\n\n ntheast <- c(\"ME\", \"NH\", \"VT\", \"MA\", \"RI\", \"CT\", \"NY\", \"NJ\", \"PA\")\n mdwest <- c(\"IL\", \"IN\", \"IA\", \"KS\", \"MI\", \"MN\", \"MO\", \"NE\", \"ND\", \"OH\", \"SD\", \"WI\")\n sth <- c(\"DE\", \"FL\", \"GA\", \"MD\", \"NC\", \"SC\", \"VA\", \"WV\", \"AL\", \"KY\", \"MS\", \"TN\",\n        \"AR\", \"LA\", \"OK\", \"TX\")\n west <- c(\"MT\", \"WY\", \"CO\", \"NM\", \"ID\", \"UT\", \"AZ\", \"NV\", \"WA\", \"OR\", \"CA\", \"AK\", \"HI\")\n\ndatt <- datt %>% mutate(geographic_site = ifelse(state_enroll %in% ntheast, \"Mayo_VTE_Northeast_US\",\n     ifelse (state_enroll %in% mdwest, \"Mayo_VTE_Midwest_US\",\n      ifelse(state_enroll %in% sth, \"Mayo_VTE_South_US\",\n        ifelse(state_enroll %in% west, \"Mayo_VTE_West_US\", \"Mayo_VTE_non_US\") )))) %>%\n     select(topmed_subject_id, geographic_site) %>% na.omit\n\n   return(datt)\n}\n"
     },
     {
       "name": "MESA_AirNR",

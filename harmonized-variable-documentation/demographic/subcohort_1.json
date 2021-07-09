@@ -3,13 +3,13 @@
   "phenotype_concept": "subcohort",
   "concept_variant": 1,
   "description": "A distinct subgroup within a study, generally indicating subjects who share similar characteristics due to study design. Subjects may belong to only one subcohort.",
-  "version": 1,
-  "dcc_harmonization_id": 92,
+  "version": 2,
+  "dcc_harmonization_id": 158,
   "data_type": "encoded",
   "measurement_units": null,
   "has_age_variable": false,
-  "date_harmonized": "2018-07-31 12:13:39",
-  "dcc_harmonization_comments": "The concept of \"cohort\" or \"subcohort\" varies among studies and its meaning is highly dependent on study design. This is intended to be a general-purpose variable, and analysts should consult study documentation before using this variable in analysis.\n\n### Harmonization process\n\nIf available, we recoded component study variables indicating subcohort membership. In instances where there was no variable indicating subcohort membership, we assigned the corresponding harmonized subcohort codes to the set of subject IDs included in subcohort-specific datasets. All consented subjects in studies with no subcohort structure were assigned a code of the form \"`TOPMed_abbreviation_NoSubcohortStructure`\" (e.g. \"`JHS_NoSubcohortStructure`\").\n\n#### Mayo VTE\n\nAlthough Mayo VTE has two subcohorts, GENEVA and Olmsted County, only GENEVA subjects are included in this version of this variable.\n",
+  "date_harmonized": "2019-10-29 10:25:04",
+  "dcc_harmonization_comments": "The concept of \"cohort\" or \"subcohort\" varies among studies and its meaning is highly dependent on study design. This is intended to be a general-purpose variable, and analysts should consult study documentation before using this variable in analysis.\n\nIf available, we recoded component study variables indicating subcohort membership. In instances where there was no variable indicating subcohort membership, we assigned the corresponding harmonized subcohort codes to the set of subject IDs included in subcohort-specific datasets. All consented subjects in studies with no subcohort structure were assigned a code of the form \"`TOPMed_abbreviation_NoSubcohortStructure`\" (e.g. \"`JHS_NoSubcohortStructure`\").\n",
   "encoded_values": [
     {
       "code": "Amish_HAPI",
@@ -28,8 +28,16 @@
       "value": "ARIC: No Subcohort Structure"
     },
     {
+      "code": "BAGS_NoSubcohortStructure",
+      "value": "BAGS: No Subcohort Structure"
+    },
+    {
       "code": "CARDIA_NoSubcohortStructure",
       "value": "CARDIA: No Subcohort Structure"
+    },
+    {
+      "code": "CCAF_NoSubcohortStructure",
+      "value": "CCAF: No Subcohort Structure"
     },
     {
       "code": "CFS_NoSubcohortStructure",
@@ -50,6 +58,10 @@
     {
       "code": "CRA_NoSubcohortStructure",
       "value": "CRA: No Subcohort Structure"
+    },
+    {
+      "code": "DHS_NoSubcohortStructure",
+      "value": "DHS: No Subcohort Structure"
     },
     {
       "code": "FHS_Gen3",
@@ -76,12 +88,24 @@
       "value": "FHS Original Cohort"
     },
     {
+      "code": "GALAII_NoSubcohortStructure",
+      "value": "GALAII: No Subcohort Structure"
+    },
+    {
       "code": "GENOA_AfricanAmerican",
       "value": "GENOA African-American Cohort"
     },
     {
       "code": "GENOA_EuropeanAmerican",
       "value": "GENOA European-American Cohort"
+    },
+    {
+      "code": "GeneSTAR_CoparentOffspring",
+      "value": "GeneSTAR Co-parent and Offspring Cohort"
+    },
+    {
+      "code": "GeneSTAR_Sibling",
+      "value": "GeneSTAR Sibling Cohort"
     },
     {
       "code": "GOLDN_NoSubcohortStructure",
@@ -104,6 +128,10 @@
       "value": "Mayo VTE GENEVA"
     },
     {
+      "code": "Mayo_VTE_Olmsted",
+      "value": "Mayo VTE Olmsted County"
+    },
+    {
       "code": "MESA_AirNR",
       "value": "MESA Air New Recruit Cohort"
     },
@@ -116,8 +144,32 @@
       "value": "MESA Family Cohort"
     },
     {
+      "code": "MGH_AF_NoSubcohortStructure",
+      "value": "MGH AF: No Subcohort Structure"
+    },
+    {
+      "code": "Partners_NoSubcohortStructure",
+      "value": "Partners: No Subcohort Structure"
+    },
+    {
+      "code": "SAGE_NoSubcohortStructure",
+      "value": "SAGE: No Subcohort Structure"
+    },
+    {
       "code": "SAS_NoSubcohortStructure",
       "value": "SAS: No Subcohort Structure"
+    },
+    {
+      "code": "VAFAR_NoSubcohortStructure",
+      "value": "VAFAR: No Subcohort Structure"
+    },
+    {
+      "code": "VU_AF_NoSubcohortStructure",
+      "value": "VU AF: No Subcohort Structure"
+    },
+    {
+      "code": "WGHS_NoSubcohortStructure",
+      "value": "WGHS: No Subcohort Structure"
     },
     {
       "code": "WHI_ClinicalTrial",
@@ -138,15 +190,21 @@
   "harmonization_units": [
     {
       "name": "Amish",
-      "component_study_variables": ["phs000956.v2.pht005002.v1.phv00252974.v1"],
+      "component_study_variables": ["phs000956.v3.pht005002.v1.phv00252974.v1"],
       "component_harmonized_variables": [],
       "harmonization_function": "harmonize <- function(phen_list){\n  dat <- phen_list$source_data[[\"pht005002\"]]\n  # Specify subcohort codes.\n  cht <- c(\"HAPI\", \"Longevity\", \"Wellness\")\n  # Convert variable to integer.\n  dat$baseline_study <- as.integer(dat$baseline_study)\n  # Create new variable with new codes.\n  dat$subcohort <- paste0(\"Amish_\", cht[dat$baseline_study])\n  # Select only ID and new subcohort variable.\n  dat <- select(dat, topmed_subject_id, subcohort)\n  return(dat)\n}\n"
     },
     {
       "name": "ARIC",
-      "component_study_variables": ["phs000280.v4.pht001440.v4.phv00098580.v3"],
+      "component_study_variables": ["phs000280.v5.pht001440.v5.phv00098580.v4"],
       "component_harmonized_variables": [],
       "harmonization_function": "harmonize <- function(phen_list){\n  dat <- phen_list$source_data$pht001440 %>%\n    # Filter out unconsented individuals.\n    filter(!(CONSENT %in% \"0\") & !is.na(CONSENT)) %>%\n    # Create subcohort variable.\n    transmute(topmed_subject_id, subcohort = \"ARIC_NoSubcohortStructure\")\n  return(dat)\n}\n"
+    },
+    {
+      "name": "BAGS",
+      "component_study_variables": ["phs001143.v2.pht005902.v1.phv00273200.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  dataset <- phen_list$source_data$pht005902 %>%\n    # Filter out unconsented individuals.\n    filter(!(CONSENT %in% \"0\") & !is.na(CONSENT)) %>%\n    # Create subcohort variable.\n    transmute(topmed_subject_id, subcohort = \"BAGS_NoSubcohortStructure\")\n\n  return(dataset)\n}\n"
     },
     {
       "name": "CARDIA",
@@ -155,8 +213,14 @@
       "harmonization_function": "harmonize <- function(phen_list){\n  dat <- phen_list$source_data$pht001554 %>%\n    # Filter out unconsented individuals.\n    filter(!(Consent %in% \"0\") & !is.na(Consent)) %>%\n    # Create subcohort variable.\n    transmute(topmed_subject_id, subcohort = \"CARDIA_NoSubcohortStructure\")\n  return(dat)\n}\n"
     },
     {
+      "name": "CCAF",
+      "component_study_variables": ["phs001189.v2.pht005977.v2.phv00273537.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Get dataset.\n  dataset <- phen_list$source_data$pht005977\n\n  # Filter for consented subjects.\n  dataset <- filter(dataset, CONSENT == '1')\n\n  # Create subcohort variable.\n  dataset$subcohort <- 'CCAF_NoSubcohortStructure'\n\n  # Select variables to return.\n  dataset <- select(dataset, topmed_subject_id, subcohort)\n\n  return(dataset)\n}\n"
+    },
+    {
       "name": "CFS",
-      "component_study_variables": ["phs000284.v1.pht001899.v1.phv00122002.v1"],
+      "component_study_variables": ["phs000284.v2.pht001899.v2.phv00122002.v2", "phs000284.v2.pht001902.v1.phv00122012.v1"],
       "component_harmonized_variables": [],
       "harmonization_function": "harmonize <- function(phen_list){\n  dat <- phen_list$source_data$pht001899 %>%\n    # Filter out unconsented individuals.\n    filter(!(CONSENT %in% \"0\") & !is.na(CONSENT)) %>%\n    # Create subcohort variable.\n    transmute(topmed_subject_id, subcohort = \"CFS_NoSubcohortStructure\")\n  return(dat)\n}\n"
     },
@@ -179,20 +243,38 @@
       "harmonization_function": "harmonize <- function(phen_list){\n  dat <- phen_list$source_data$pht005245 %>%\n    # Filter out unconsented individuals.\n    filter(!(CONSENT %in% \"0\") & !is.na(CONSENT)) %>%\n    # Create subcohort variable.\n    transmute(topmed_subject_id, subcohort = \"CRA_NoSubcohortStructure\")\n  return(dat)\n}\n"
     },
     {
+      "name": "DHS",
+      "component_study_variables": ["phs001412.v1.pht006743.v1.phv00310005.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Dataset\n  dataset <- phen_list$source_data$pht006743 %>%\n  #Removing consent group 0\n             filter(!(CONSENT == 0))\n  #Assigning cohort structure\n  dataset$subcohort <- \"DHS_NoSubcohortStructure\"\n  #Selecting final variables\n  dataset <- dataset %>%\n             select(topmed_subject_id, subcohort) %>%\n             return()\n}\n"
+    },
+    {
       "name": "FHS",
-      "component_study_variables": ["phs000007.v29.pht003099.v4.phv00177928.v4"],
+      "component_study_variables": ["phs000007.v30.pht003099.v5.phv00177928.v5"],
       "component_harmonized_variables": [],
       "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  dat <- phen_list$source_data[[\"pht003099\"]]\n  # Create empty subcohort variable.\n  dat$subcohort <- NA\n  # Map codes to new subcohort variable.\n  dat$subcohort[dat$idtype == \"0\"] <- \"FHS_Original\"\n  dat$subcohort[dat$idtype == \"1\"] <- \"FHS_Offspring\"\n  dat$subcohort[dat$idtype == \"2\"] <- \"FHS_NewOffspringSpouse\"\n  dat$subcohort[dat$idtype == \"3\"] <- \"FHS_Gen3\"\n  dat$subcohort[dat$idtype == \"7\"] <- \"FHS_Omni1\"\n  dat$subcohort[dat$idtype == \"72\"] <- \"FHS_Omni2\"\n  # Select only ID and new subcohort variable.\n  dat <- select(dat, topmed_subject_id, subcohort)\n  return(dat)\n}\n"
     },
     {
+      "name": "GALAII",
+      "component_study_variables": ["phs001180.v1.pht006988.v1.phv00320615.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  dataset <- phen_list$source_data$pht006988 %>%\n    # Filter out unconsented individuals.\n    filter(!(CONSENT %in% \"0\") & !is.na(CONSENT)) %>%\n    # Create subcohort variable.\n    transmute(topmed_subject_id, subcohort = \"GALAII_NoSubcohortStructure\")\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "GeneSTAR",
+      "component_study_variables": ["phs001218.v1.pht007766.v1.phv00369267.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  #Datasets\n  int <- phen_list$source_data$pht007766\n  #Order of levels\n  int$VISIT <- int$VISIT %>%\n               as.factor() %>%\n               relevel('SSV')\n  #Subset to baseline visits, SSV and PSV\n  dataset <- int %>%\n             filter(VISIT %in% c('SSV', 'PSV')) %>%\n             mutate(VISIT = as.factor(VISIT)) %>%\n             group_by(topmed_subject_id) %>%\n             arrange(topmed_subject_id, VISIT) %>%\n             filter(row_number(topmed_subject_id) == 1) %>%\n             ungroup() %>%\n             data.frame()\n\n  #Assigning values\n  dataset$subcohort <- ifelse(dataset$VISIT == 'SSV',\n                              'GeneSTAR_Sibling',\n                              'GeneSTAR_CoparentOffspring')\n\n  #Select variables and remove missing\n  dataset <- select(dataset, topmed_subject_id, subcohort)\n\n  return(dataset)\n}\n"
+    },
+    {
       "name": "GENOA_AfricanAmerican",
-      "component_study_variables": ["phs001238.v1.pht006039.v1.phv00277508.v1"],
+      "component_study_variables": ["phs001238.v2.pht006039.v1.phv00277508.v1"],
       "component_harmonized_variables": [],
       "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  pht6039 <- phen_list$source_data$pht006039 %>%\n    # Select ID variable and code all subjects as AA.\n    transmute(topmed_subject_id, subcohort = \"GENOA_AfricanAmerican\")\n  return(pht6039)\n}\n"
     },
     {
       "name": "GENOA_EuropeanAmerican",
-      "component_study_variables": ["phs001238.v1.pht006649.v1.phv00307741.v1", "phs001238.v1.pht006653.v1.phv00307789.v1", "phs001238.v1.pht006659.v1.phv00307950.v1"],
+      "component_study_variables": ["phs001238.v2.pht006649.v1.phv00307741.v1", "phs001238.v2.pht006653.v1.phv00307789.v1", "phs001238.v2.pht006659.v1.phv00307950.v1"],
       "component_harmonized_variables": [],
       "harmonization_function": "harmonize <- function(phen_list){\n  library(magrittr)\n  # Get IDs from each dataset.\n  ids <- sapply(phen_list$source_data, extract2, \"topmed_subject_id\") %>%\n    # Unlist IDs into vector.\n    unlist() %>%\n    # Remove duplicate values.\n    unique()\n  # Create harmonized dataframe and add subcohort.\n  harmonized <- data.frame(topmed_subject_id = ids, subcohort = \"GENOA_EuropeanAmerican\")\n  return(harmonized)\n}\n"
     },
@@ -203,8 +285,14 @@
       "harmonization_function": "harmonize <- function(phen_list){\n  dat <- phen_list$source_data$pht003915 %>%\n    # Filter out unconsented individuals.\n    filter(!(consent %in% \"0\") & !is.na(consent)) %>%\n    # Create subcohort variable.\n    transmute(topmed_subject_id, subcohort = \"GOLDN_NoSubcohortStructure\")\n  return(dat)\n}\n"
     },
     {
+      "name": "HCHS_SOL",
+      "component_study_variables": ["phs000810.v1.pht004713.v1.phv00226241.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  dat <- phen_list$source_data$pht004713 %>%\n    # Filter out unconsented individuals.\n    filter(!(CONSENT %in% \"0\") & !is.na(CONSENT)) %>%\n    # Create subcohort variable.\n    transmute(topmed_subject_id, subcohort = \"HCHS_SOL_NoSubcohortStructure\")\n  return(dat)\n}\n"
+    },
+    {
       "name": "HVH",
-      "component_study_variables": ["phs001013.v3.pht005309.v3.phv00259370.v3"],
+      "component_study_variables": ["phs001013.v3.pht005309.v3.phv00259370.v3", "phs001013.v3.pht005311.v2.phv00259376.v2", "phs001013.v3.pht005311.v2.phv00259377.v2"],
       "component_harmonized_variables": [],
       "harmonization_function": "harmonize <- function(phen_list){\n  dat <- phen_list$source_data$pht005309 %>%\n    # Filter out unconsented individuals.\n    filter(!(CONSENT %in% \"0\") & !is.na(CONSENT)) %>%\n    # Create subcohort variable.\n    transmute(topmed_subject_id, subcohort = \"HVH_NoSubcohortStructure\")\n  return(dat)\n}\n"
     },
@@ -213,6 +301,18 @@
       "component_study_variables": ["phs000286.v5.pht001920.v4.phv00124546.v3"],
       "component_harmonized_variables": [],
       "harmonization_function": "harmonize <- function(phen_list){\n  dat <- phen_list$source_data$pht001920 %>%\n    # Filter out unconsented individuals.\n    filter(!(CONSENT %in% \"0\") & !is.na(CONSENT)) %>%\n    # Create subcohort variable.\n    transmute(topmed_subject_id, subcohort = \"JHS_NoSubcohortStructure\")\n  return(dat)\n}\n"
+    },
+    {
+      "name": "Mayo_VTE_GENEVA",
+      "component_study_variables": ["phs000289.v2.pht001883.v1.phv00121830.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  dat <- phen_list$source_data$pht001883 %>%\n    # Filter out unconsented individuals.\n    filter(!(CONSENT %in% \"0\") & !is.na(CONSENT)) %>%\n    # Create subcohort variable.\n    transmute(topmed_subject_id, subcohort = \"Mayo_VTE_GENEVA\")\n  return(dat)\n}\n"
+    },
+    {
+      "name": "Mayo_VTE_Olmsted",
+      "component_study_variables": ["phs001402.v1.pht008239.v1.phv00389900.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  dataset <- phen_list$source_data$pht008239 %>%\n             transmute(topmed_subject_id, subcohort = \"Mayo_VTE_Olmsted\")\n\n  return(dataset)\n}\n"
     },
     {
       "name": "MESA_airnr",
@@ -233,10 +333,46 @@
       "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  # Code subcohort as Family for all observations in dataframe.\n  harmonized <- transmute(phen_list$source_data$pht001121, topmed_subject_id,\n                          subcohort = \"MESA_Family\")\n  return(harmonized)\n}\n"
     },
     {
+      "name": "MGH_AF",
+      "component_study_variables": ["phs001001.v1.pht005653.v1.phv00265704.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  dataset <- phen_list$source_data$pht005653 %>%\n    # Filter out unconsented individuals.\n    filter(!(CONSENT %in% \"0\") & !is.na(CONSENT)) %>%\n    # Create subcohort variable.\n    transmute(topmed_subject_id, subcohort = \"MGH_AF_NoSubcohortStructure\")\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "Partners",
+      "component_study_variables": ["phs001024.v3.pht005116.v2.phv00253774.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  dataset <- phen_list$source_data$pht005116\n  # Create subcohort variable.\n  dataset$subcohort <- 'Partners_NoSubcohortStructure'\n\n  dataset <- select(dataset, topmed_subject_id, subcohort)\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "SAGE",
+      "component_study_variables": ["phs000921.v3.pht004881.v3.phv00252275.v3"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  dataset <- phen_list$source_data$pht004881\n  # Create subcohort variable.\n  dataset$subcohort <- \"SAGE_NoSubcohortStructure\"\n\n  dataset <- select(dataset, topmed_subject_id, subcohort)\n  return(dataset)\n}\n"
+    },
+    {
       "name": "SAS",
       "component_study_variables": ["phs000914.v1.pht005251.v1.phv00258664.v1"],
       "component_harmonized_variables": [],
       "harmonization_function": "harmonize <- function(phen_list){\n  dat <- phen_list$source_data$pht005251 %>%\n    # Filter out unconsented individuals.\n    filter(!(CONSENT %in% \"0\") & !is.na(CONSENT)) %>%\n    # Create subcohort variable.\n    transmute(topmed_subject_id, subcohort = \"SAS_NoSubcohortStructure\")\n  return(dat)\n}\n"
+    },
+    {
+      "name": "VAFAR",
+      "component_study_variables": ["phs000997.v3.pht005087.v3.phv00253604.v3"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Get dataset.\n  dataset <- phen_list$source_data$pht005087\n\n  # Filter for consented subjects.\n  dataset <- filter(dataset, CONSENT == '1')\n\n  # Create subcohort variable.\n  dataset$subcohort <- 'VAFAR_NoSubcohortStructure'\n\n  # Select variables to return.\n  dataset <- select(dataset, topmed_subject_id, subcohort)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "VU_AF",
+      "component_study_variables": ["phs001032.v4.pht005098.v2.phv00253678.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Get dataset.\n  dataset <- phen_list$source_data$pht005098\n\n  # Filter for consented subjects.\n  dataset <- filter(dataset, CONSENT == '1')\n\n  # Create subcohort variable.\n  dataset$subcohort <- 'VU_AF_NoSubcohortStructure'\n\n  # Select variables to return.\n  dataset <- select(dataset, topmed_subject_id, subcohort)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "WGHS",
+      "component_study_variables": ["phs001040.v3.pht005203.v2.phv00258321.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  #Dataset\n  dataset <- phen_list$source_data$pht005203 %>%\n  #subcohort variable\n  transmute(topmed_subject_id, subcohort = \"WGHS_NoSubcohortStructure\")\n\n  return(dataset)\n}\n"
     },
     {
       "name": "WHI",

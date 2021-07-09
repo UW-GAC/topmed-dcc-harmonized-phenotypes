@@ -205,3 +205,14 @@ please refer to the [Guidelines on the use and reporting of race,
 ethnicity, and ancestry in the NHLBI Trans-Omics for Precision Medicine
 (TOPMed)
 program](https://www.nhlbiwgs.org/guidelines-use-and-reporting-race-ethnicity-and-ancestry-topmed).
+
+Citation
+--------
+
+If you have used the documentation in this repository, please cite the
+following paper:
+
+Stilp AM, Emery LS, et al. A System for Phenotype Harmonization in the
+NHLBI Trans-Omics for Precision Medicine (TOPMed) Program. Am J
+Epidemiol. 2021 Apr 16:kwab115. doi: 10.1093/aje/kwab115. Epub ahead of
+print. PMID: [33861317](https://pubmed.ncbi.nlm.nih.gov/33861317/).

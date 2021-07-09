@@ -1,0 +1,38 @@
+{
+  "name": "coronary_angioplasty_incident_1",
+  "phenotype_concept": "coronary_angioplasty_incident",
+  "concept_variant": 1,
+  "description": "An indicator of whether a subject had a coronary angioplasty procedure (that was verified by adjudication or by medical professionals) during the follow-up period.",
+  "version": 1,
+  "dcc_harmonization_id": 165,
+  "data_type": "encoded",
+  "measurement_units": null,
+  "has_age_variable": true,
+  "date_harmonized": "2019-10-31 16:34:10",
+  "dcc_harmonization_comments": "This variable was harmonized by appropriately converting component variables to a binary variable indicating the occurrence of a coronary angioplasty procedure during follow-up. If a study recorded multiple events, the DCC harmonized only the earliest event after the start of follow-up, and the corresponding age at event was used for the accompanying age variable. Unless otherwise stated, the age variable accompanying this variable represents the study participants' age when the coronary angioplasty procedure occurred or the age at last follow-up or death for those participants who did not have a coronary angioplasty procedure.\n",
+  "encoded_values": [
+    {
+      "code": "0",
+      "value": "Coronary angioplasty procedure did not occur during follow-up"
+    },
+    {
+      "code": "1",
+      "value": "Coronary angioplasty procedure occurred during follow-up"
+    }
+  ],
+  "controlled_vocabulary": [
+    {
+      "source": "UMLS",
+      "version": "2019AA",
+      "id": "C0002997"
+    }
+  ],
+  "harmonization_units": [
+    {
+      "name": "WHI",
+      "component_study_variables": ["phs000200.v11.pht000998.v6.phv00078436.v6", "phs000200.v11.pht000998.v6.phv00078437.v6", "phs000200.v11.pht003395.v3.phv00192302.v3", "phs000200.v11.pht003407.v3.phv00193199.v3", "phs000200.v11.pht003407.v3.phv00193200.v3", "phs000200.v11.pht003407.v3.phv00193504.v3", "phs000200.v11.pht003407.v3.phv00193505.v3"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    # Join all dataframes in the list.\n    dat <- plyr::join_all(phen_list$source_data, \"topmed_subject_id\", \"full\") %>%\n        # Convert numeric variables to numeric type.\n        mutate_at(vars(ends_with(\"DY\"), AGE, F2DAYS), as.numeric) %>%\n        # Set positive F2DAYS values to 0.\n        mutate_at(vars(F2DAYS), function(x) case_when(x > 0 ~ 0, TRUE ~ x)) %>%\n        # Calculate age at event/censoring.\n        mutate(censordy = case_when(EXT2MRC == 1 ~ ENDFOLLOWDY, TRUE ~ ENDEXT1DY),\n               eventdy = case_when(PTCA == 1 ~ PTCADY, PTCA == 0 ~ censordy),\n               age = AGE + (abs(F2DAYS) + eventdy) / 365.25) %>%\n        # Drop old variables.\n        select(topmed_subject_id, coronary_angioplasty_incident = PTCA, age) %>%\n        # Exclude rows with missing data.\n        na.omit()\n    return(dat)\n}\n"
+    }
+  ]
+}

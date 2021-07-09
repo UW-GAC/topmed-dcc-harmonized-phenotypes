@@ -1,0 +1,44 @@
+{
+  "name": "pad_incident_1",
+  "phenotype_concept": "pad_incident",
+  "concept_variant": 1,
+  "description": "An indicator of whether a subject had peripheral arterial disease (that was verified by adjudication or by medical professionals) during the follow-up period.",
+  "version": 1,
+  "dcc_harmonization_id": 172,
+  "data_type": "encoded",
+  "measurement_units": null,
+  "has_age_variable": true,
+  "date_harmonized": "2019-10-31 16:35:34",
+  "dcc_harmonization_comments": "This variable was harmonized by appropriately converting component variables to a binary variable indicating the presence or absence of a PAD diagnosis during follow-up. If a study recorded multiple events, the DCC harmonized only the earliest event after the start of follow-up, and the corresponding age at event was used for the accompanying age variable. Unless otherwise stated, the age variable accompanying this variable represents the study participants' age when the PAD diagnosis occurred or the age at last follow-up or death for those participants who did not have a PAD diagnosis. \n\n### Study-specific comments\n\n#### WHI\n\nSource variables contained some abdominal aortic aneurysm (AAA) cases. Observations where a subject had an abdominal aortic aneurysm (AAA) and not another PAD event had their value set to \"0\".\n\n#### FHS\n\nThe data available for PAD includes events through December 2016. The data available for participants who did not have PAD is through December 2014. Therefore, the accompanying age variable for participants who did not have PAD is recorded through 2014, while participants who did have PAD have their age recorded through 2016. \n\n",
+  "encoded_values": [
+    {
+      "code": "0",
+      "value": "No diagnosis of PAD during follow-up"
+    },
+    {
+      "code": "1",
+      "value": "PAD was diagnosed during follow-up"
+    }
+  ],
+  "controlled_vocabulary": [
+    {
+      "source": "UMLS",
+      "version": "2019AA",
+      "id": "C0085096"
+    }
+  ],
+  "harmonization_units": [
+    {
+      "name": "FHS",
+      "component_study_variables": ["phs000007.v30.pht000309.v13.phv00036469.v12", "phs000007.v30.pht000309.v13.phv00036471.v12", "phs000007.v30.pht003099.v5.phv00177930.v5", "phs000007.v30.pht003316.v7.phv00190817.v7", "phs000007.v30.pht003316.v7.phv00190823.v7"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    source_data <- phen_list$source_data\n\n    # Join datasets.\n    dat <- full_join(source_data$pht003099, source_data$pht000309, by = \"topmed_subject_id\") %>%\n\n      # Convert age to numeric.\n      transmute(topmed_subject_id,\n                cad_followup_start_age = as.numeric(age1),\n                event = as.numeric(EVENT),\n                date = as.numeric(DATE))\n\n    # Create pad_incident variable. Gather all pad_incident events.\n    dat$pad_incident <- replicate(length(dat$event), 0)\n    dat$pad_incident  <- case_when(\n      dat$event == 30 ~ 1,\n      dat$event != 30 ~ 0,\n      is.na(dat$event) ~ NA_real_\n    )\n\n    # Calculate age at event.\n    dat$age_at_event <- replicate(length(dat$event), 0)\n    dat$age_at_event <- floor(dat$cad_followup_start_age + (dat$date / 365.25))\n\n    # Identify prior pad events.\n    dat <- dat %>%\n      mutate(pad_incident = case_when(date <= 0 ~ 0,\n                                     pad_incident == 1 & date > 0 ~ 1,\n                                     TRUE ~ pad_incident))\n\n    # Find subjects with multiple pad events and select first pad event.\n    pad_event <- dat %>%\n      filter(pad_incident == 1) %>%\n      arrange(topmed_subject_id, date) %>%\n      distinct(topmed_subject_id, .keep_all = TRUE) %>%\n      select(-event)\n\n    # Gather all non-pad-event subjects.\n    non_pad_event <- dat %>%\n      filter(pad_incident == 0) %>%\n      select(-event)\n\n    # Gather all non-event subjects from surv dataset.\n    dat2 <- full_join(source_data$pht003099, source_data$pht003316, by = \"topmed_subject_id\") %>%\n      transmute(topmed_subject_id,\n                cad_followup_start_age = as.numeric(age1),\n                cvd_status = as.numeric(cvd),\n                date = as.numeric(cvddate))\n\n    # Create a non-event specific dataset and remove duplicates.\n    non_event <- dat2 %>%\n      filter(cvd_status == 0) %>%\n      arrange(topmed_subject_id, desc(date)) %>%\n      distinct(topmed_subject_id, .keep_all = TRUE) %>%\n      select(-cvd_status)\n\n    # Create a pad_incident variable for non-event subjects.\n    non_event$pad_incident <- 0\n\n    # Create an age at censoring variable for non-event subjects.\n    non_event$age_at_event <-\n      non_event$cad_followup_start_age + (non_event$date / 365.25)\n\n    # Bind non_event and non_pad_event datasets and remove duplicates.\n    non_event_all <- rbind(non_event, non_pad_event) %>%\n      arrange(topmed_subject_id, desc(date)) %>%\n      distinct(topmed_subject_id, .keep_all = TRUE)\n\n    # Combine all pad-event subjects with non-pad-event subjects.\n    dat_combined <- bind_rows(pad_event, non_event_all) %>%\n      arrange(topmed_subject_id, desc(pad_incident)) %>%\n\n      # Remove duplicate subjects with multiple events.\n      distinct(topmed_subject_id, .keep_all = TRUE) %>%\n      transmute(topmed_subject_id,\n                pad_incident = as.character(pad_incident),\n                age = age_at_event) %>%\n      na.omit()\n\n    return(dat_combined)\n}\n"
+    },
+    {
+      "name": "WHI",
+      "component_study_variables": ["phs000200.v11.pht000998.v6.phv00078436.v6", "phs000200.v11.pht000998.v6.phv00078437.v6", "phs000200.v11.pht003395.v3.phv00192302.v3", "phs000200.v11.pht003406.v3.phv00193101.v3", "phs000200.v11.pht003406.v3.phv00193102.v3", "phs000200.v11.pht003406.v3.phv00193103.v3", "phs000200.v11.pht003406.v3.phv00193104.v3", "phs000200.v11.pht003406.v3.phv00193105.v3", "phs000200.v11.pht003406.v3.phv00193106.v3", "phs000200.v11.pht003406.v3.phv00193107.v3", "phs000200.v11.pht003407.v3.phv00193190.v3", "phs000200.v11.pht003407.v3.phv00193191.v3", "phs000200.v11.pht003407.v3.phv00193504.v3", "phs000200.v11.pht003407.v3.phv00193505.v3"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    source_data <- phen_list$source_data\n\n    # Subset to rows with at least one relevant value.\n    dat_pad <- filter(source_data$pht003406, !is.na(PADLEG) | !is.na(PADAMP) |\n                      !is.na(PADSURG) | !is.na(PADEXER) | !is.na(PADABDOP) |\n                      !is.na(PADPLAQ) | !is.na(PADDX)) %>%\n      # Convert character vectors to integer.\n      mutate_if(is.character, as.integer) %>%\n      # Code PAD events based on subtypes.\n      mutate(pad1 = PADDX %in% 1:3 | PADPLAQ | PADABDOP | PADEXER | PADSURG |\n             PADAMP | PADLEG) %>%\n      # Code pad2 as FALSE when pad1 is missing and PAD diagnosis is AAA.\n      mutate(pad2 = case_when(is.na(pad1) & PADDX == 4 ~ FALSE, TRUE ~ pad1))\n\n    dat <- full_join(dat_pad, source_data$pht003407, \"topmed_subject_id\") %>%\n        # Use PERIPH value for PAD when pad2 is missing; otherwise use pad2.\n        mutate(pad_incident = case_when(is.na(pad2) ~ as.logical(as.integer(PERIPH)),\n                                        TRUE ~ pad2)) %>%\n        # Join with MRC indicator.\n        left_join(source_data$pht003395, \"topmed_subject_id\") %>%\n        # Join with age.\n        left_join(source_data$pht000998, \"topmed_subject_id\") %>%\n        # Convert numeric variables to numeric type.\n        mutate_at(vars(ends_with(\"DY\"), AGE, F2DAYS), as.numeric) %>%\n        # Set positive F2DAYS values to 0.\n        mutate_at(vars(F2DAYS), function(x) case_when(x > 0 ~ 0, TRUE ~ x)) %>%\n        # Calculate age at event/censoring.\n        mutate(censordy = case_when(EXT2MRC == 1 ~ ENDFOLLOWDY, TRUE ~ ENDEXT1DY),\n               eventdy = case_when(pad_incident ~ PERIPHDY, !pad_incident ~ censordy),\n               age = AGE + (abs(F2DAYS) + eventdy) / 365.25) %>%\n        # Drop old variables and convert PAD to binary.\n        transmute(topmed_subject_id, pad_incident = as.character(as.integer(pad_incident)),\n                  age) %>%\n        # Exclude rows with missing data.\n        na.omit()\n    return(dat)\n}\n"
+    }
+  ]
+}

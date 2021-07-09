@@ -1,0 +1,29 @@
+{
+  "name": "cad_followup_start_age_1",
+  "phenotype_concept": "cad_followup_start_age",
+  "concept_variant": 1,
+  "description": "Age of subject at the start of the follow-up period during which atherosclerosis events were reviewed and adjudicated.",
+  "version": 1,
+  "dcc_harmonization_id": 159,
+  "data_type": "decimal",
+  "measurement_units": "cad_followup_start_age",
+  "has_age_variable": false,
+  "date_harmonized": "2019-10-31 16:32:31",
+  "dcc_harmonization_comments": "This variable represents the age at which the follow-up period began for the following incident event variables: `mi_incident_1`, `cabg_incident_1`, `coronary_angioplasty_incident_1`, `angina_incident_1`, `pad_incident_1`. For most studies, this variable was harmonized from component variables indicating the age at baseline visit.\n\n### Study-specific comments\n\n#### WHI\n\nThe age at follow-up start does not directly correspond to the age at which prior history of CAD indicators were determined.\n\n",
+  "encoded_values": [],
+  "controlled_vocabulary": [],
+  "harmonization_units": [
+    {
+      "name": "FHS",
+      "component_study_variables": ["phs000007.v30.pht003099.v5.phv00177930.v5"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  # Rename age variable and convert to numeric.\n  dat <- transmute(phen_list$source_data$pht003099, topmed_subject_id,\n                   cad_followup_start_age = as.numeric(age1)) %>%\n    # Exclude rows with missing data.\n    na.omit()\n  return(dat)\n}\n"
+    },
+    {
+      "name": "WHI",
+      "component_study_variables": ["phs000200.v11.pht000998.v6.phv00078437.v6"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  # Rename age variable and convert to numeric.\n  dat <- transmute(phen_list$source_data$pht000998, topmed_subject_id,\n                   cad_followup_start_age = as.numeric(AGE)) %>%\n    # Exclude rows with missing data.\n    na.omit()\n  return(dat)\n}\n"
+    }
+  ]
+}

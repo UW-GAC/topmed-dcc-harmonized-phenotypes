@@ -1,0 +1,38 @@
+{
+  "name": "coronary_revascularization_prior_1",
+  "phenotype_concept": "coronary_revascularization_prior",
+  "concept_variant": 1,
+  "description": "An indicator of whether a subject had a coronary revascularization procedure prior to the start of the baseline visit. This includes angioplasty, CABG, and other coronary revascularization procedures.",
+  "version": 1,
+  "dcc_harmonization_id": 160,
+  "data_type": "encoded",
+  "measurement_units": "coronary_revascularization_prior",
+  "has_age_variable": true,
+  "date_harmonized": "2019-10-31 16:32:57",
+  "dcc_harmonization_comments": "This variable was harmonized by appropriately converting component variables to a binary variable indicating the occurrence of a coronary revascularization procedure before the baseline visit. Component variables could indicate occurrence of a coronary revascularization procedure either by self-report or by study adjudication. In cases where history of specific revascularization procedures was unavailable, we used component variables for history of _any_ coronary revascularization procedure. \n\n### Reporting method for component study variables\n\nThe table below shows the reporting method (self-reported or adjudicated by the study) for component study variables from each study included in this harmonized variable.\n\n| Study or subcohort | Self-report or Adjudicated|\n|---------|----------|\n| GENOA | Self-report |\n\n",
+  "encoded_values": [
+    {
+      "code": "0",
+      "value": "Did not have a coronary revascularization procedure before baseline"
+    },
+    {
+      "code": "1",
+      "value": "Had a coronary revascularization procedure before baseline"
+    }
+  ],
+  "controlled_vocabulary": [
+    {
+      "source": "UMLS",
+      "version": "2019AA",
+      "id": "C0877341"
+    }
+  ],
+  "harmonization_units": [
+    {
+      "name": "GENOA",
+      "component_study_variables": ["phs001238.v2.pht006039.v1.phv00277507.v1", "phs001238.v2.pht006043.v1.phv00277602.v1", "phs001238.v2.pht006653.v1.phv00307788.v1", "phs001238.v2.pht006657.v1.phv00307883.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  library(magrittr)\n\n  # Join datasets with age and revascularization events - Eu cohort.\n  dataset_eu <- dplyr::full_join(phen_list$source_data$pht006657,\n    phen_list$source_data$pht006653) %>%\n    rename(age = AGE, coronary_revascularization_prior = ARTERIES)\n\n  dataset_eu2 <- dataset_eu %>%\n    mutate(coronary_revascularization_prior =\n           case_when(coronary_revascularization_prior == \"No\" ~ 0,\n                     coronary_revascularization_prior == \"Yes\" ~ 1,\n                     TRUE ~ NA_real_))\n\n  # Join datasets with age and revascularization events - AA cohort.\n  dataset_aa <- dplyr::full_join(phen_list$source_data$pht006043,\n    phen_list$source_data$pht006039) %>%\n    rename(age = AGE, coronary_revascularization_prior = ARTERIES)\n\n  dataset_aa2 <- dataset_aa %>%\n    mutate(coronary_revascularization_prior =\n         case_when(coronary_revascularization_prior == \"No\" ~ 0,\n                   coronary_revascularization_prior == \"Yes\" ~ 1,\n                   TRUE ~ NA_real_))\n\n\n  # Combine AA and Eu datasets.\n  dataset <- rbind(dataset_aa2, dataset_eu2)\n\n  # Convert revascularization_prior to character, age to numeric.\n  dataset$coronary_revascularization_prior <- as.character(dataset$coronary_revascularization_prior)\n  dataset$age <- as.numeric(dataset$age)\n\n  # Remove NAs.\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    }
+  ]
+}

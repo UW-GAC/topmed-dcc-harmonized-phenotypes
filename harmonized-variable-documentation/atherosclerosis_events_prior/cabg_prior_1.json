@@ -1,0 +1,74 @@
+{
+  "name": "cabg_prior_1",
+  "phenotype_concept": "cabg_prior",
+  "concept_variant": 1,
+  "description": "An indicator of whether a subject had a coronary artery bypass graft (CABG) procedure prior to the start of the baseline visit.",
+  "version": 1,
+  "dcc_harmonization_id": 164,
+  "data_type": "encoded",
+  "measurement_units": "cabg_prior",
+  "has_age_variable": true,
+  "date_harmonized": "2019-10-31 16:33:58",
+  "dcc_harmonization_comments": "This variable was harmonized by converting encoded component variables indicating the occurrence of a CABG procedure by self-report or adjudication to a binary variable indicating the occurrence of a CABG procedure before the baseline visit. If a study recorded multiple CABG procedures, the DCC harmonized only the earliest procedure prior to baseline. Unless otherwise stated, the age variable accompanying this variable represents the study participants' age when history of the CABG procedure was recorded, _not_ the age when the procedure occurred. \n\n### Study-specific comments\n\n#### FHS\n\nThe age variable accompanying this variable represents the age at which the CABG procedure occurred, not the age when the history of any CABG procedures was recorded. \n\n### Reporting method for component study variables\n\nThe table below shows the reporting method (self-reported or adjudicated by the study) for component study variables from each study included in this harmonized variable.\n\n| Study or subcohort | Self-report or Adjudicated|\n|---------|----------|\n| FHS | Adjudicated|\n| MESA | Self-report |\n| JHS | Self-report |\n| ARIC | Self-report |\n| CHS | Both |\n| COPDGene | Self-report |\n| WHI | Self-report |\n\n",
+  "encoded_values": [
+    {
+      "code": "0",
+      "value": "Did not have a CABG procedure before baseline"
+    },
+    {
+      "code": "1",
+      "value": "Had a CABG procedure before baseline"
+    }
+  ],
+  "controlled_vocabulary": [
+    {
+      "source": "UMLS",
+      "version": "2019AA",
+      "id": "C0010055"
+    }
+  ],
+  "harmonization_units": [
+    {
+      "name": "ARIC",
+      "component_study_variables": ["phs000280.v5.pht004063.v2.phv00204712.v1", "phs000280.v5.pht004143.v2.phv00208845.v1", "phs000280.v5.pht004143.v2.phv00208846.v1", "phs000280.v5.pht004143.v2.phv00208853.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  library(magrittr)\n\n  # Join datasets with age and revascularization events.\n  dataset <- plyr::join_all(phen_list$source_data) %>%\n    rename(age = V1AGE01, cabg_prior = PHEA07A, ever_surgery = PHEA06,\n           ever_balloon_angio = PHEA08)\n\n  # Set 'T' and 'E' to missing.\n  dataset$cabg_prior[dataset$cabg_prior %in% 'T'] <- NA\n  dataset$ever_surgery[dataset$ever_surgery %in% 'E'] <- NA\n\n  dataset <- dataset %>%\n    mutate(cabg_prior = ifelse(cabg_prior == \"N\", 0, 1),\n           ever_surgery = ifelse(ever_surgery == \"N\", 0, 1),\n           ever_balloon_angio = ifelse(ever_balloon_angio == \"N\", 0, 1)) %>%\n    mutate_if(is.character, as.numeric) %>%\n\n    # Remove rows with all missing values.\n    filter(rowSums(is.na(.)) < 3)\n\n  # Set cabg_prior values.\n  dataset$cabg_prior <- ifelse(is.na(dataset$cabg_prior) == TRUE, 0, dataset$cabg_prior)\n\n  # Select phenotype of interest.\n  dataset <- select(dataset, topmed_subject_id, age, cabg_prior)\n\n  # Convert cabg_prior to character and age to numeric.\n  dataset$cabg_prior <- as.character(dataset$cabg_prior)\n  dataset$age <- as.numeric(dataset$age)\n\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "CHS",
+      "component_study_variables": ["phs000287.v6.pht001452.v1.phv00100487.v1", "phs000287.v6.pht001464.v1.phv00100785.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  source_data <- phen_list$source_data\n  # Join datasets.\n  dat <- full_join(source_data$pht001464, source_data$pht001452, \"topmed_subject_id\") %>%\n    # Rename CABG variable and convert age to numeric.\n    transmute(topmed_subject_id, age = as.numeric(AGEBL), cabg_prior = BPSSURBL) %>%\n    # Exclude rows with missing data.\n    na.omit()\n  return(dat)\n}\n"
+    },
+    {
+      "name": "COPDGene",
+      "component_study_variables": ["phs000179.v5.pht002239.v4.phv00159631.v4", "phs000179.v5.pht002239.v4.phv00159836.v4"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  # Rename CABG variable and convert age to numeric.\n  dat <- transmute(phen_list$source_data$pht002239, cabg_prior = CABG, topmed_subject_id,\n                   age = as.numeric(Age_Enroll)) %>%\n    # Exclude rows with missing data.\n    na.omit()\n  return(dat)\n}\n"
+    },
+    {
+      "name": "FHS",
+      "component_study_variables": ["phs000007.v30.pht000389.v10.phv00054697.v8", "phs000007.v30.pht000389.v10.phv00163410.v7", "phs000007.v30.pht003099.v5.phv00177930.v5", "phs000007.v30.pht003316.v7.phv00190817.v7", "phs000007.v30.pht003316.v7.phv00190823.v7"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    source_data <- phen_list$source_data\n\n    # Join datasets.\n    dat <- full_join(source_data$pht003099, source_data$pht000389, by = \"topmed_subject_id\") %>%\n      # Convert age to numeric.\n      transmute(topmed_subject_id,\n                cabg_prior = ifelse(as.numeric(VESSEL) > 0, 1, 0),\n                date = as.numeric(PROCDATE),\n                cad_followup_start_age = as.numeric(age1))\n\n    ## Calculate age at event.\n    dat$age_at_event <- replicate(length(dat$cabg_prior), 0)\n    dat$age_at_event <- floor(dat$cad_followup_start_age + (dat$date / 365.25))\n\n    # Identify prior cabg events.\n    dat <- dat %>%\n      mutate(cabg_prior = case_when(cabg_prior == 1 & date <= 0 ~ 1,\n                                     cabg_prior == 1 & date > 0 ~ 0,\n                                     TRUE ~ cabg_prior))\n\n      # Find subjects with multiple cabg events and select first cabg event.\n    cabg_event <- dat %>%\n      filter(cabg_prior == 1) %>%\n      arrange(topmed_subject_id, date) %>%\n      distinct(topmed_subject_id, .keep_all = TRUE)\n\n    # Gather all non-cabg-event subjects and remove duplicate subjects.\n    non_cabg_event <- dat %>%\n      filter(cabg_prior == 0)\n\n    # Gather all non-event subjects from surv dataset.\n    dat2 <- full_join(source_data$pht003099, source_data$pht003316, by = \"topmed_subject_id\") %>%\n      transmute(topmed_subject_id,\n                cad_followup_start_age = as.numeric(age1),\n                cvd_status = as.numeric(cvd),\n                date = as.numeric(cvddate))\n\n    # Create a non-event specific dataset and remove duplicates.\n    non_event <- dat2 %>%\n      filter(cvd_status == 0) %>%\n      arrange(topmed_subject_id, desc(date)) %>%\n      distinct(topmed_subject_id, .keep_all = TRUE) %>%\n      select(-cvd_status)\n\n    # Create an cabg_prior variable for non-event subjects.\n    non_event$cabg_prior <- 0\n\n    # Create an age at censoring variable for non-event subjects.\n    non_event$age_at_event <-\n      non_event$cad_followup_start_age + (non_event$date / 365.25)\n\n    # Bind non_event and non_cabg_event datasets and remove duplicates.\n    non_event_all <- rbind(non_event, non_cabg_event) %>%\n      arrange(topmed_subject_id, desc(date)) %>%\n      distinct(topmed_subject_id, .keep_all = TRUE)\n\n    # Combine all cabg-event subjects with non-cabg-event subjects.\n    dat_combined <- bind_rows(cabg_event, non_event_all) %>%\n      arrange(topmed_subject_id, desc(cabg_prior)) %>%\n\n      # Remove duplicate subjects with multiple events.\n      distinct(topmed_subject_id, .keep_all = TRUE) %>%\n      transmute(topmed_subject_id, cabg_prior = as.character(cabg_prior), age = age_at_event) %>%\n      na.omit()\n\n    return(dat_combined)\n}\n"
+    },
+    {
+      "name": "JHS",
+      "component_study_variables": ["phs000286.v5.pht001949.v1.phv00126009.v1", "phs000286.v5.pht001963.v1.phv00127727.v1", "phs000286.v5.pht001963.v1.phv00127728.v1", "phs000286.v5.pht001963.v1.phv00127731.v1", "phs000286.v5.pht001963.v1.phv00127733.v1", "phs000286.v5.pht001963.v1.phv00127740.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  library(magrittr)\n\n  # Join datasets with age and revascularization events.\n  dataset <- plyr::join_all(phen_list$source_data) %>%\n    rename(age = AGE01, cabg_prior = MHXA52A,\n          ever_surgery = MHXA51, other_revasc = MHXA52E1, heart_cath = MHXA55A,\n          carotid_endart = MHXA52C) %>%\n    mutate(cabg_prior = ifelse(cabg_prior == \"N\", 0, 1),\n           ever_surgery = ifelse(ever_surgery == \"N\", 0, 1),\n           other_revasc = ifelse(other_revasc == \"N\", 0, 1),\n           heart_cath = ifelse(heart_cath == \"N\", 0, 1),\n           carotid_endart = ifelse(carotid_endart == \"N\", 0, 1)) %>%\n    mutate_if(is.character, as.numeric) %>%\n\n    # Remove rows with all missing data.\n    filter(rowSums(is.na(.)) < 5)\n\n\n  # Set cabg_prior values.\n  dataset$cabg_prior <- ifelse(is.na(dataset$cabg_prior) == TRUE, 0, dataset$cabg_prior)\n\n  # Select phenotype of interest.\n  dataset <- dataset %>%\n    select(topmed_subject_id, age, cabg_prior) %>%\n    na.omit()\n\n  # Convert cabg_prior to character and age to numeric.\n  dataset$cabg_prior <- as.character(dataset$cabg_prior)\n  dataset$age <- as.numeric(dataset$age)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "MESA",
+      "component_study_variables": ["phs000209.v13.pht001116.v10.phv00084442.v3"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  # Convert age to numeric and set all participants to 0.\n  dat <- transmute(phen_list$source_data$pht001116, topmed_subject_id, age = as.numeric(age1c),\n                   cabg_prior = \"0\")\n  return(dat)\n}\n"
+    },
+    {
+      "name": "WHI",
+      "component_study_variables": ["phs000200.v11.pht000998.v6.phv00078436.v6", "phs000200.v11.pht000998.v6.phv00078437.v6", "phs000200.v11.pht000999.v6.phv00078507.v6", "phs000200.v11.pht000999.v6.phv00078535.v6"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  source_data <- phen_list$source_data\n  # Join Form 2 data with Form 30 data\n  dat <- full_join(source_data$pht000998, source_data$pht000999, \"topmed_subject_id\") %>%\n    # Set positive F2DAYS values to 0.\n    mutate_at(vars(F2DAYS), function(x) case_when(x > 0 ~ 0, TRUE ~ as.numeric(x))) %>%\n    # Calculate age, rename CABG variable, and drop remaining variables.\n    transmute(age = as.numeric(AGE) + (as.numeric(F30DAYS) + abs(F2DAYS)) / 365.25,\n              cabg_prior = CABG, topmed_subject_id) %>%\n    # Exclude rows with missing data.\n    na.omit()\n  return(dat)\n}\n"
+    }
+  ]
+}

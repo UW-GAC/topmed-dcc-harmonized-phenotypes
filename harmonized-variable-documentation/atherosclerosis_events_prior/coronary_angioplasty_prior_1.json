@@ -1,0 +1,68 @@
+{
+  "name": "coronary_angioplasty_prior_1",
+  "phenotype_concept": "coronary_angioplasty_prior",
+  "concept_variant": 1,
+  "description": "An indicator of whether a subject had a coronary angioplasty procedure prior to the start of the baseline visit.",
+  "version": 1,
+  "dcc_harmonization_id": 168,
+  "data_type": "encoded",
+  "measurement_units": "coronary_angioplasty_prior",
+  "has_age_variable": true,
+  "date_harmonized": "2019-10-31 16:34:42",
+  "dcc_harmonization_comments": "This variable was harmonized by appropriately converting component variables to a binary variable indicating the occurrence of a coronary angioplasty procedure before the baseline visit. Component variables included could indicate occurrence of a coronary angioplasty procedure either by self-report or by study adjudication. If a study recorded multiple coronary angioplasty procedures, the DCC harmonized only the earliest procedure prior to baseline. Unless otherwise stated, the age variable accompanying this variable represents the study participants' age when history of the coronary angioplasty procedure was recorded, _not_ the age when the procedure occurred. \n\n\n### Reporting method for component study variables\n\nThe table below shows the reporting method (self-reported or adjudicated by the study) for component study variables from each study included in this harmonized variable.\n\n| Study or subcohort | Self-report or Adjudicated|\n|---------|----------|\n| MESA | Self-report |\n| JHS | Self-report |\n| ARIC | Self-report |\n| CHS | Both |\n| COPDGene | Self-report |\n| WHI | Self-report |\n\n",
+  "encoded_values": [
+    {
+      "code": "0",
+      "value": "Did not have a coronary angioplasty procedure before baseline"
+    },
+    {
+      "code": "1",
+      "value": "Had a coronary angioplasty procedure before baseline"
+    }
+  ],
+  "controlled_vocabulary": [
+    {
+      "source": "UMLS",
+      "version": "2019AA",
+      "id": "C0002997"
+    }
+  ],
+  "harmonization_units": [
+    {
+      "name": "ARIC",
+      "component_study_variables": ["phs000280.v5.pht004063.v2.phv00204712.v1", "phs000280.v5.pht004143.v2.phv00208845.v1", "phs000280.v5.pht004143.v2.phv00208853.v1", "phs000280.v5.pht004143.v2.phv00208854.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  library(magrittr)\n\n  # Join datasets with age and revascularization events.\n  dataset <- plyr::join_all(phen_list$source_data) %>%\n    rename(age = V1AGE01, coronary_angioplasty_prior = PHEA09A, ever_surgery = PHEA06,\n           ever_balloon_angio = PHEA08)\n\n  # Set 'E' to missing.\n  dataset$ever_surgery[dataset$ever_surgery %in% 'E'] <- NA\n\n  dataset <- dataset %>%\n    mutate(coronary_angioplasty_prior = ifelse(coronary_angioplasty_prior == \"N\", 0, 1),\n           ever_surgery = ifelse(ever_surgery == \"N\", 0, 1),\n           ever_balloon_angio = ifelse(ever_balloon_angio == \"N\", 0, 1)) %>%\n    mutate_if(is.character, as.numeric) %>%\n    filter(rowSums(is.na(.)) < 3)\n\n # Set coronary_angioplasty_prior values.\n dataset$coronary_angioplasty_prior <-\n   ifelse(is.na(dataset$coronary_angioplasty_prior) == TRUE,\n           0, dataset$coronary_angioplasty_prior)\n\n dataset <- select(dataset, topmed_subject_id, age, coronary_angioplasty_prior)\n\n  # Convert coronary_angioplasty_prior to character.\n  dataset$coronary_angioplasty_prior <- as.character(dataset$coronary_angioplasty_prior)\n\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "CHS",
+      "component_study_variables": ["phs000287.v6.pht001452.v1.phv00100322.v1", "phs000287.v6.pht001452.v1.phv00100487.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  # Rename angioplasty variable and convert age to numeric.\n  dat <- transmute(phen_list$source_data$pht001452, topmed_subject_id, age = as.numeric(AGEBL),\n                   coronary_angioplasty_prior = CORART) %>%\n    # Exclude rows with missing data.\n    na.omit()\n  return(dat)\n}\n"
+    },
+    {
+      "name": "COPDGene",
+      "component_study_variables": ["phs000179.v5.pht002239.v4.phv00159632.v4", "phs000179.v5.pht002239.v4.phv00159836.v4"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  # Rename angioplasty variable and convert age to numeric.\n  dat <- transmute(phen_list$source_data$pht002239, topmed_subject_id,\n                   coronary_angioplasty_prior = Angioplasty,\n                   age = as.numeric(Age_Enroll)) %>%\n    # Exclude rows with missing data.\n    na.omit()\n  return(dat)\n}\n"
+    },
+    {
+      "name": "JHS",
+      "component_study_variables": ["phs000286.v5.pht001949.v1.phv00126009.v1", "phs000286.v5.pht001963.v1.phv00127727.v1", "phs000286.v5.pht001963.v1.phv00127731.v1", "phs000286.v5.pht001963.v1.phv00127733.v1", "phs000286.v5.pht001963.v1.phv00127737.v1", "phs000286.v5.pht001963.v1.phv00127740.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  library(magrittr)\n\n  # Join datasets with age and revascularization events.\n  dataset <- plyr::join_all(phen_list$source_data) %>%\n    rename(age = AGE01, coronary_angioplasty_prior = MHXA54A,\n          ever_surgery = MHXA51, other_revasc = MHXA52E1, heart_cath = MHXA55A,\n          carotid_endart = MHXA52C) %>%\n    mutate(coronary_angioplasty_prior = ifelse(coronary_angioplasty_prior == \"N\", 0, 1),\n           ever_surgery = ifelse(ever_surgery == \"N\", 0, 1),\n           other_revasc = ifelse(other_revasc == \"N\", 0, 1),\n           heart_cath = ifelse(heart_cath == \"N\", 0, 1),\n           carotid_endart = ifelse(carotid_endart == \"N\", 0, 1)) %>%\n    filter(rowSums(is.na(.)) < 5)\n\n  # Set coronary_angioplasty_prior values.\n  dataset$coronary_angioplasty_prior <-\n    ifelse(is.na(dataset$coronary_angioplasty_prior) == TRUE,\n            0, dataset$coronary_angioplasty_prior)\n\n  dataset <- dataset %>%\n    select(topmed_subject_id, age, coronary_angioplasty_prior)\n\n  # Convert coronary_angioplasty_prior to character.\n  dataset$coronary_angioplasty_prior <- as.character(dataset$coronary_angioplasty_prior)\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "MESA",
+      "component_study_variables": ["phs000209.v13.pht001116.v10.phv00084442.v3"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  # Convert age to numeric and set all participants to 0.\n  dat <- transmute(phen_list$source_data$pht001116, topmed_subject_id, age = as.numeric(age1c),\n                   coronary_angioplasty_prior = \"0\")\n  return(dat)\n}\n"
+    },
+    {
+      "name": "WHI",
+      "component_study_variables": ["phs000200.v11.pht000998.v6.phv00078436.v6", "phs000200.v11.pht000998.v6.phv00078437.v6", "phs000200.v11.pht000999.v6.phv00078507.v6", "phs000200.v11.pht000999.v6.phv00078536.v6"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  source_data <- phen_list$source_data\n  # Join Form 2 data with Form 30 data\n  dat <- inner_join(source_data$pht000998, source_data$pht000999, \"topmed_subject_id\") %>%\n    # Set positive F2DAYS values to 0.\n    mutate_at(vars(F2DAYS), function(x) case_when(x > 0 ~ 0, TRUE ~ as.numeric(x))) %>%\n    # Calculate age, rename angioplasty variable, and drop remaining variables.\n    transmute(age = as.numeric(AGE) + (as.numeric(F30DAYS) + abs(F2DAYS)) / 365.25,\n              coronary_angioplasty_prior = PTCA, topmed_subject_id) %>%\n    # Exclude rows with missing data.\n    na.omit()\n  return(dat)\n}\n"
+    }
+  ]
+}

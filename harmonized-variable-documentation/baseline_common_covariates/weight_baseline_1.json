@@ -3,13 +3,13 @@
   "phenotype_concept": "weight_baseline",
   "concept_variant": 1,
   "description": "Body weight at baseline.",
-  "version": 3,
-  "dcc_harmonization_id": 100,
+  "version": 4,
+  "dcc_harmonization_id": 152,
   "data_type": "decimal",
   "measurement_units": "kg",
   "has_age_variable": true,
-  "date_harmonized": "2018-08-23 16:06:01",
-  "dcc_harmonization_comments": "This variable was harmonized by converting component variables to the appropriate unit, as needed.\n\n#### HVH\n\nThere are multiple observations for many subjects in the HVH phenotype file. In\nthese instances, we used the earliest observation for harmonization. Although\nthis harmonized phenotype is designated as \"baseline\", the concept of\n\"baseline\" does not apply to HVH based on its study design. Consult the study\ndocumentation for more details (phs001013).\n",
+  "date_harmonized": "2019-09-30 15:02:33",
+  "dcc_harmonization_comments": "This variable was harmonized by converting component study variables to the appropriate unit, as needed.\n\n#### BAGS\n\nUsing BAGS height and weight data to calculate BMI, we identified 6 implausibly high BMI values. The study investigated and confirmed that these 6 subjects had incorrect values for height and weight component study variables. The incorrect weight values for this study can be identified using the harmonized variable `bmi_baseline_1` values > 100. \n\n#### GeneSTAR\n\nThis variable was harmonized using study-reported height and BMI variables to calculate weight. \n\n#### HVH\n\nThere are multiple observations for many subjects in the HVH phenotype data. In\nthese instances, we used the earliest observation of each subject for harmonization. Although\nthis harmonized phenotype is designated as \"baseline\", the concept of\n\"baseline\" does not apply to HVH based on its study design. Consult the study\ndocumentation for more details (phs001013).\n\n#### Partners\n\nOne subject with a weight value of `400+` was assigned to 400 lbs (181.437 kg).\n\n#### WHI \n\nThe WHI study set weight values below 45.8 kg to 45.8 and set weight values above 130.2 kg to 130.2 in the component study variable. \n\n#### Exam visit for weight measurement\n\n| Study or subcohort | Visit |\n|---------|----------|\n| Amish | Baseline visit |\n| ARIC | Exam 1 |\n| BAGS | Baseline visit |\n| CARDIA | Year 0/Exam 1 |\n| CCAF | *Unspecified first visit* |\n| CFS | Baseline visit |\n| CHS_Original | Baseline visit |\n| CHS_AfricanAmerican | Baseline visit |\n| COPDGene | Baseline visit |\n| CRA | Baseline visit | \n| DHS | Baseline visit |\n| FHS | Exam 1 |\n| GeneSTAR_ProbandSiblingCohort | Sibling Study Visit |\n| GeneSTAR_OffspringCoparentCohort | Platelet Study Visit |\n| GENOA | Phase 1 |\n| HCHS_SOL | Visit 1 |\n| HVH | *No visit structure* |\n| JHS | Visit 1 |\n| Mayo_VTE_GENEVA | *Unspecified first visit*  |\n| Mayo_VTE_Olmsted | *Unspecified first visit* |\n| MESA_Classic | Exam 1 Main |\n| MESA_Family | Family Exam Main |\n| MESA_AirNR | AirNR Exam Main | \n| MGH_AF | *Unspecified first visit* |\n| Partners | Baseline visit |\n| SAS | Exam 1 |\n| VAFAR | *Unspecified first visit* |\n| VU_AF | *Unspecified first visit* |\n| WGHS | Exam 1 |\n| WHI | Screening, Year 0 |\n\n",
   "encoded_values": [],
   "controlled_vocabulary": [
     {
@@ -21,15 +21,21 @@
   "harmonization_units": [
     {
       "name": "Amish",
-      "component_study_variables": ["phs000956.v2.pht005002.v1.phv00252976.v1", "phs000956.v2.pht005002.v1.phv00252979.v1"],
+      "component_study_variables": ["phs000956.v3.pht005002.v1.phv00252976.v1", "phs000956.v3.pht005002.v1.phv00252979.v1"],
       "component_harmonized_variables": [],
       "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    library(magrittr)\n    dataset <- phen_list$source_data[[\"pht005002\"]] %>%\n        # Rename and select relevant variables\n        transmute(topmed_subject_id,\n            age = age_baseline,\n            # Convert weight to numeric\n            weight_baseline = as.numeric(weight_baseline)) %>%\n            # Exclude incomplete records\n        na.omit()\n    # Age is winsorized at 90, as an encoded value. Convert to integer:\n    dataset$age[dataset$age == \"90+\"] <- \"90\"\n    # Convert age to integer\n    dataset %<>% mutate(age = as.integer(age))\n    return(dataset)\n}\n"
     },
     {
       "name": "ARIC",
-      "component_study_variables": ["phs000280.v4.pht004032.v2.phv00203154.v1", "phs000280.v4.pht004063.v2.phv00204712.v1"],
+      "component_study_variables": ["phs000280.v5.pht004032.v2.phv00203154.v1", "phs000280.v5.pht004063.v2.phv00204712.v1"],
       "component_harmonized_variables": [],
       "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    dataset <- phen_list$source_data[[\"pht004032\"]] %>%\n        # Join datasets by topmed_subject_id\n        full_join(phen_list$source_data[[\"pht004063\"]], \"topmed_subject_id\") %>%\n        # Select and rename relevant variables\n        transmute(topmed_subject_id,\n            # Convert age to integer\n            age = as.integer(V1AGE01),\n            # There is an encoded value 'A' in ANTA04 that is not described in\n            # the the data dictionary. It is coerced to NA here.\n            # Weight in pounds converted to kilograms\n            weight_baseline = as.numeric(na_if(ANTA04, \"A\")) * 0.453592) %>%\n        # Exclude incomplete records\n        na.omit()\n\n    return(dataset)\n}\n"
+    },
+    {
+      "name": "BAGS",
+      "component_study_variables": ["phs001143.v2.pht005905.v2.phv00273211.v2", "phs001143.v2.pht005905.v2.phv00375337.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  #Dataset\n  dataset <- phen_list$source_data$pht005905\n\n  #Numeric values\n  dataset <- dataset %>%\n             replace(dataset == 'NA', NA) %>%\n             mutate(weight_baseline = as.numeric(WEIGHT_KG),\n                    age = as.numeric(AGE)) %>%\n             select(topmed_subject_id, weight_baseline, age) %>%\n             na.omit()\n\n  return(dataset)\n}\n"
     },
     {
       "name": "CARDIA",
@@ -38,8 +44,14 @@
       "harmonization_function": "harmonize <- function(phen_list){\n  # Join all dataframes.\n  dat <- plyr::join_all(phen_list$source_data, \"topmed_subject_id\") %>%\n    # Rename age and convert to numeric, and convert weight to kilograms.\n    transmute(topmed_subject_id, age = as.numeric(A01AGE2),\n              weight_baseline = as.numeric(A20WGT) * 0.45359) %>%\n    # Exlcue rows with missing data.\n    na.omit()\n  return(dat)\n}\n"
     },
     {
+      "name": "CCAF",
+      "component_study_variables": ["phs001189.v2.pht005979.v2.phv00273546.v2", "phs001189.v2.pht005979.v2.phv00273552.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Get dataset.\n  dataset <- phen_list$source_data$pht005979 %>%\n             rename(weight_baseline = weight)\n\n  # Substitute the value of 'NA' to missing.\n  dataset$age[dataset$age %in% 'NA'] <- NA\n  dataset$weight_baseline[dataset$weight_baseline %in% 'NA'] <- NA\n\n  # Convert character values to numeric.\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  # Convert weight unit from pound to kg.\n  dataset <- mutate(dataset, weight_baseline = weight_baseline * 0.453592)\n\n  # Remove records with NAs from dataset.\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
       "name": "CFS",
-      "component_study_variables": ["phs000284.v1.pht001902.v1.phv00122012.v1", "phs000284.v1.pht001902.v1.phv00122015.v1", "phs000284.v1.pht001902.v1.phv00122639.v1"],
+      "component_study_variables": ["phs000284.v2.pht001902.v1.phv00122012.v1", "phs000284.v2.pht001902.v1.phv00122015.v1", "phs000284.v2.pht001902.v1.phv00122639.v1"],
       "component_harmonized_variables": [],
       "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    phen_list$source_data$pht001902  %>%\n        # Subset to baseline visit. Some respondents baseline is visit 5\n        filter(visit %in% c(\"1\", \"5\")) %>%\n        group_by(topmed_subject_id) %>%\n        arrange(topmed_subject_id, visit) %>%\n        filter(row_number(topmed_subject_id) == 1) %>%\n        ungroup() %>%\n        # Select and rename relevant variables\n        transmute(topmed_subject_id,\n            # Convert age to integer\n            age = as.integer(age),\n            # Convert weight to numeric\n            weight_baseline = as.numeric(wtkg)) %>%\n        # Exclude incomplete records\n        na.omit() %>%\n        return()\n}\n"
     },
@@ -62,20 +74,32 @@
       "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    source_data <- phen_list$source_data\n    source_data$pht005248 %>%\n        # Select, rename and convert to numeric relevant variables\n        transmute(topmed_subject_id, age = as.numeric(age),\n                  weight_baseline = as.numeric(weight)) %>%\n        # Exclude incomplete records\n        na.omit() %>%\n        return()\n}\n"
     },
     {
+      "name": "DHS",
+      "component_study_variables": ["phs001412.v1.pht006746.v1.phv00310016.v1", "phs001412.v1.pht006746.v1.phv00310029.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  dataset <- phen_list$source_data$pht006746 %>%\n             select(topmed_subject_id,\n                    weight_baseline = WEIGHT,\n                    age = AGE) %>%\n             mutate_if(is.character, as.numeric) %>%\n             return()\n}\n"
+    },
+    {
       "name": "FHS_Original_Omni1",
-      "component_study_variables": ["phs000007.v29.pht000009.v2.phv00000541.v1", "phs000007.v29.pht003099.v4.phv00177930.v4", "phs000007.v29.pht004813.v1.phv00250287.v1"],
+      "component_study_variables": ["phs000007.v30.pht000009.v2.phv00000541.v1", "phs000007.v30.pht003099.v5.phv00177930.v5", "phs000007.v30.pht004813.v1.phv00250287.v1"],
       "component_harmonized_variables": [],
       "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    source_data <- phen_list$source_data\n    # Initiate empty list\n    data_lists <- list(original = NULL, omni_1 = NULL)\n\n    # Rename weight variables\n    data_lists$original <- rename(source_data$pht000009, wt = MF69)\n    data_lists$omni_1 <- rename(source_data$pht004813, wt = e024)\n    # Bind datasets rowwise\n    dataset <- do.call(rbind, data_lists) %>%\n        # Join weight datasets with age dataset\n        inner_join(source_data$pht003099, by = \"topmed_subject_id\") %>%\n        # Select and rename relevant variables\n        transmute(topmed_subject_id,\n            # Convert weight to kilograms\n            weight_baseline = as.numeric(wt) * 0.45359,\n            # Convert age to integer\n            age = as.integer(age1)) %>%\n        # Exclude incomplete records\n        na.omit()\n\n    return(dataset)\n}\n"
     },
     {
       "name": "FHS_Workthru",
-      "component_study_variables": ["phs000007.v29.pht006026.v1.phv00277020.v1", "phs000007.v29.pht006026.v1.phv00277055.v1", "phs000007.v29.pht006027.v1.phv00277077.v1", "phs000007.v29.pht006027.v1.phv00277227.v1"],
+      "component_study_variables": ["phs000007.v30.pht006026.v2.phv00277020.v2", "phs000007.v30.pht006026.v2.phv00277055.v2", "phs000007.v30.pht006027.v2.phv00277077.v2", "phs000007.v30.pht006027.v2.phv00277227.v2"],
       "component_harmonized_variables": [],
       "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    # Bind dataframes row-wise\n    bind_rows(phen_list$source_data) %>%\n        # Convert character variables to numeric\n        mutate_if(is.character, as.numeric) %>%\n        transmute(age = AGE1, weight_baseline = WGT1 * 0.45359,\n                  topmed_subject_id) %>%\n        # Exclude incomplete records\n        na.omit() %>%\n        return\n}\n"
     },
     {
+      "name": "GeneSTAR",
+      "component_study_variables": ["phs001218.v1.pht007766.v1.phv00369267.v1", "phs001218.v1.pht007766.v1.phv00369268.v1", "phs001218.v1.pht007766.v1.phv00369271.v1", "phs001218.v1.pht007766.v1.phv00369272.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  #Datasets\n  int <- phen_list$source_data$pht007766\n  #Order of levels\n  int$VISIT <- int$VISIT %>%\n               as.factor() %>%\n               relevel('SSV')\n  #Subset to baseline visits, SSV and PSV\n  dataset <- int %>%\n             filter(VISIT %in% c('SSV', 'PSV')) %>%\n             mutate(VISIT = as.factor(VISIT)) %>%\n             group_by(topmed_subject_id) %>%\n             arrange(topmed_subject_id, VISIT) %>%\n             filter(row_number(topmed_subject_id) == 1) %>%\n             ungroup() %>%\n             data.frame()\n  #Converting to numeric variable\n  dataset <- dataset %>%\n             replace(dataset == 'NA', NA) %>%\n             mutate(HT = as.numeric(HT),\n                    BMI = as.numeric(BMI),\n                    age = as.numeric(AGE))\n\n  #Calculating weight from height and BMI\n  dataset$height_m <- (0.0254 * (dataset$HT))\n  dataset$weight_baseline <- (dataset$BMI * (dataset$height_m) ^ 2)\n\n  #Final variables and remove missing\n  dataset <- dataset %>%\n             select(topmed_subject_id, weight_baseline, age) %>%\n             na.omit()\n\n  return(dataset)\n}\n"
+    },
+    {
       "name": "GENOA",
-      "component_study_variables": ["phs001238.v1.pht006039.v1.phv00277507.v1", "phs001238.v1.pht006039.v1.phv00277515.v1", "phs001238.v1.pht006653.v1.phv00307788.v1", "phs001238.v1.pht006653.v1.phv00307796.v1"],
+      "component_study_variables": ["phs001238.v2.pht006039.v1.phv00277507.v1", "phs001238.v2.pht006039.v1.phv00277515.v1", "phs001238.v2.pht006653.v1.phv00307788.v1", "phs001238.v2.pht006653.v1.phv00307796.v1"],
       "component_harmonized_variables": [],
       "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  # Row-bind African-American and European-American cohort datasets.\n  harmonized <- bind_rows(phen_list$source_data) %>%\n    # Convert character vectors to numeric.\n    mutate_if(is.character, as.numeric) %>%\n    # Rename age and weight variables.\n    rename(age = AGE, weight_baseline = WEIGHT) %>%\n    # Exclude rows with missing values.\n    na.omit()\n  return(harmonized)\n}\n"
     },
@@ -98,10 +122,16 @@
       "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    source_data <- phen_list$source_data\n    # Join datasets by topmed_subject_id\n    dataset <- inner_join(source_data$pht001940, source_data$pht001949,\n            by = \"topmed_subject_id\") %>%\n            # Select and rename relevant variables\n        transmute(topmed_subject_id,\n            # Convert age to integer\n            age = as.integer(AGE01),\n            # Convert weight to numeric\n            weight_baseline = as.numeric(antv2)) %>%\n        # Exclude incomplete records\n        na.omit()\n    return(dataset)\n}\n"
     },
     {
-      "name": "Mayo_VTE",
+      "name": "Mayo_VTE_GENEVA",
       "component_study_variables": ["phs000289.v2.pht001886.v2.phv00121846.v1", "phs000289.v2.pht001886.v2.phv00121873.v2"],
       "component_harmonized_variables": [],
       "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    phen_list$source_data$pht001886 %>%\n        # Rename relevant variables\n        rename(age = enrollage, weight_baseline = apptwt_kgs) %>%\n        # Convert character variables to numeric\n        mutate_if(is.character, as.numeric) %>%\n        # Exclude incomplete records\n        na.omit() %>%\n        return()\n}\n"
+    },
+    {
+      "name": "Mayo_VTE_Olmsted",
+      "component_study_variables": ["phs001402.v1.pht008239.v1.phv00389902.v1", "phs001402.v1.pht008239.v1.phv00389929.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  dataset <- phen_list$source_data$pht008239\n\n  #Assigning age '>89' to 90\n  dataset$enrollage[dataset$enrollage == '>89'] <- 90\n\n  #Variable type, names and removing missing\n  dataset <- dataset %>%\n             rename(age = enrollage, weight_baseline = apptwt_kgs) %>%\n             replace(dataset == 'NA', NA) %>%\n             mutate_if(is.character, as.numeric) %>%\n             na.omit()\n\n  return(dataset)\n}\n"
     },
     {
       "name": "MESA",
@@ -110,10 +140,40 @@
       "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    source_data <- phen_list$source_data\n    # Rename age and weight to match other datasets\n    source_data$pht001121 <- rename(source_data$pht001121,\n            age1c = agefc, wtlb1 = wtlbf)\n    # Bind datasets rowwise\n    dataset <- do.call(rbind, source_data) %>%\n        # Select and rename relevant variables\n        transmute(topmed_subject_id,\n            # Convert age to integer\n            age = as.integer(age1c),\n            # Convert weight to kilograms\n            weight_baseline = as.numeric(wtlb1) * 0.453592) %>%\n    # Exclude incomplete records\n    na.omit()\n    return(dataset)\n}\n"
     },
     {
+      "name": "MGH_AF",
+      "component_study_variables": ["phs001001.v1.pht005655.v1.phv00354560.v1", "phs001001.v1.pht005655.v1.phv00354565.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  dataset <- phen_list$source_data$pht005655\n\n  #Converting weight to numeric variables\n  dataset <- dataset %>%\n             replace(dataset == 'NA', NA) %>%\n             mutate(weight = as.numeric(weight), age = as.numeric(age))\n\n  #Converting to kilograms\n  dataset$weight_baseline <- (0.453592 * dataset$weight)\n\n  #Selecting variables and removing NAs\n  dataset <- dataset %>%\n             select(topmed_subject_id, weight_baseline, age) %>%\n             na.omit()\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "Partners",
+      "component_study_variables": ["phs001024.v3.pht005693.v1.phv00265978.v1", "phs001024.v3.pht005693.v1.phv00265983.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  #Dataset\n  dataset <- phen_list$source_data$pht005693 %>%\n             rename(age = age_diagnosis)\n\n  #Assign 400+ value to 400\n  dataset$weight[dataset$weight == '400+'] <- 400\n\n  #Missing values and variable structure\n  dataset <- replace(dataset, dataset == 'NA', NA) %>%\n             mutate(age = as.numeric(age),\n                    weight = as.numeric(weight))\n\n  #Converting from pounds to kilograms\n  dataset$weight_baseline <- (0.4536 * dataset$weight)\n\n  #Select final variables\n  dataset <- select(dataset, topmed_subject_id, age, weight_baseline)\n\n  return(dataset)\n}\n"
+    },
+    {
       "name": "SAS",
       "component_study_variables": ["phs000914.v1.pht005253.v1.phv00258680.v1", "phs000914.v1.pht005253.v1.phv00258684.v1"],
       "component_harmonized_variables": [],
       "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    phen_list$source_data$pht005253 %>%\n        # Select and rename relevant variables\n        transmute(topmed_subject_id,\n            age = Dec_Age,\n            # Recode \"NA\" string as NA\n            weight_baseline = na_if(Weight, \"NA\")) %>%\n        # Convert character variables to numeric\n        mutate_if(is.character, as.numeric) %>%\n        # Exclude incomplete records\n        na.omit() %>%\n        return()\n}\n"
+    },
+    {
+      "name": "VAFAR",
+      "component_study_variables": ["phs000997.v3.pht005688.v3.phv00265921.v3", "phs000997.v3.pht005688.v3.phv00265927.v3"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Get dataset.\n  dataset <- phen_list$source_data$pht005688 %>%\n             rename(weight_baseline = weight)\n\n  # Substitute the value of 'NA' to missing.\n  dataset$age[dataset$age %in% 'NA'] <- NA\n  dataset$weight_baseline[dataset$weight_baseline %in% 'NA'] <- NA\n\n  # Convert character values to numeric.\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  # Convert weight unit from pound to kg.\n  dataset <- mutate(dataset, weight_baseline = weight_baseline * 0.453592)\n\n  # Remove records with NAs from dataset.\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "VU_AF",
+      "component_study_variables": ["phs001032.v4.pht005675.v3.phv00265805.v2", "phs001032.v4.pht005675.v3.phv00265811.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  # Get dataset.\n  dataset <- phen_list$source_data$pht005675 %>%\n             rename(weight_baseline = weight)\n\n  # Substitute the value of 'NA' to missing.\n  dataset$weight_baseline[dataset$weight_baseline %in% 'NA'] <- NA\n\n  # Convert character values to numeric.\n  dataset <- mutate_if(dataset, is.character, as.numeric)\n\n  # Convert weight unit from pound to kg.\n  dataset <- mutate(dataset, weight_baseline = weight_baseline * 0.453592)\n\n  # Remove records with NAs from dataset.\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "WGHS",
+      "component_study_variables": ["phs001040.v3.pht005682.v3.phv00265848.v3", "phs001040.v3.pht005682.v3.phv00375261.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n\n  #Dataset\n  dataset <- phen_list$source_data$pht005682\n  dataset <- dataset %>%\n             replace(dataset == 'NA', NA) %>%\n             mutate(WEIGHT = as.numeric(WEIGHT),\n                    age = as.integer(age))\n\n  #Height in cm\n  dataset$weight_baseline <- (dataset$WEIGHT * 0.453592)\n\n  #Final variables and remove missing\n  dataset <- dataset %>%\n             select(topmed_subject_id, weight_baseline, age) %>%\n             na.omit() %>%\n             return()\n}\n"
     },
     {
       "name": "WHI",

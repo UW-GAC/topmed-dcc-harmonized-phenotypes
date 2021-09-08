@@ -1,0 +1,86 @@
+{
+  "name": "mi_prior_1",
+  "phenotype_concept": "mi_prior",
+  "concept_variant": 1,
+  "description": "An indicator of whether a subject had a myocardial infarction (MI) prior to the start of the baseline visit.",
+  "version": 1,
+  "dcc_harmonization_id": 169,
+  "data_type": "encoded",
+  "measurement_units": "mi_prior",
+  "has_age_variable": true,
+  "date_harmonized": "2019-10-31 16:35:15",
+  "dcc_harmonization_comments": "This variable was harmonized by appropriately converting component variables to a binary variable indicating the occurrence of an MI event before the baseline visit. Component variables included could indicate the occurrence of an MI event either by self-report or by study adjudication. If a study recorded multiple events, the DCC harmonized only the earliest event prior to baseline. Unless otherwise stated, the age variable accompanying this variable represents the study participants' age when history of MI was recorded, _not_ the age at which the MI occurred.\n\n### Study-specific comments\n\n#### FHS\n\nThe age variable accompanying this variable represents the age at which the MI occurred, not the age at which the history of MI was recorded. \n\n### Reporting method for component study variables\n\nThe table below shows the reporting method (self-reported or adjudicated by the study) for component study variables from each study included in this harmonized variable.\n\n| Study or subcohort | Self-report or Adjudicated|\n|---------|----------|\n| FHS | Adjudicated|\n| MESA | Self-report |\n| JHS | Self-report |\n| ARIC | Both |\n| CHS | Both |\n| COPDGene | Self-report |\n| WHI | Self-report |\n",
+  "encoded_values": [
+    {
+      "code": "0",
+      "value": "Did not have a history of MI before baseline"
+    },
+    {
+      "code": "1",
+      "value": "Had a history of MI before baseline"
+    }
+  ],
+  "controlled_vocabulary": [
+    {
+      "source": "UMLS",
+      "version": "2019AA",
+      "id": "C0027051"
+    }
+  ],
+  "harmonization_units": [
+    {
+      "name": "Amish",
+      "component_study_variables": ["phs000956.v3.pht005002.v1.phv00252976.v1", "phs000956.v3.pht005002.v1.phv00252984.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  dat <- transmute(phen_list$source_data$pht005002, topmed_subject_id,\n                   # Rename MI variable.\n                   mi_prior = mi_baseline,\n                   # Recode Winsorized values and convert age to numeric.\n                   age = as.numeric(case_when(age_baseline == \"90+\" ~ \"90\",\n                                              TRUE ~ age_baseline))) %>%\n    # Exclude rows with missing data.\n    na.omit()\n  return(dat)\n}\n"
+    },
+    {
+      "name": "ARIC",
+      "component_study_variables": ["phs000280.v5.pht004063.v2.phv00204705.v1", "phs000280.v5.pht004063.v2.phv00204712.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  library(magrittr)\n\n  dataset <- phen_list$source_data$pht004063\n\n  dataset <- dataset %>%\n    rename(age = V1AGE01, mi_prior = PREVMI05)\n\n  # Convert missing values to NA.\n  dataset$mi_prior[dataset$mi_prior %in% 'T'] <- NA\n\n  # Convert age to numeric and mi_prior to character.\n  dataset$age <- as.numeric(dataset$age)\n  dataset$mi_prior <- as.character(dataset$mi_prior)\n\n  # Remove NAs.\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "CHS",
+      "component_study_variables": ["phs000287.v6.pht001452.v1.phv00100487.v1", "phs000287.v6.pht001452.v1.phv00100508.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  # Convert age to numeric and rename variables.\n  dat <- transmute(phen_list$source_data$pht001452, age = as.numeric(AGEBL),\n                   mi_prior = MIBLMOD, topmed_subject_id) %>%\n    # Exclude rows with missing data.\n    na.omit()\n  return(dat)\n}\n"
+    },
+    {
+      "name": "COPDGene",
+      "component_study_variables": ["phs000179.v5.pht002239.v4.phv00159615.v4", "phs000179.v5.pht002239.v4.phv00159836.v4"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  library(magrittr)\n\n  dataset <- phen_list$source_data$pht002239 %>%\n    rename(age = Age_Enroll, mi_prior = HeartAttack)\n\n  # Convert age to numeric and mi_prior to character.\n  dataset$age <- as.numeric(dataset$age)\n  dataset$mi_prior <- as.character(dataset$mi_prior)\n\n  # Remove NAs.\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "FHS",
+      "component_study_variables": ["phs000007.v30.pht000309.v13.phv00036469.v12", "phs000007.v30.pht000309.v13.phv00036471.v12", "phs000007.v30.pht003099.v5.phv00177930.v5", "phs000007.v30.pht003316.v7.phv00190817.v7", "phs000007.v30.pht003316.v7.phv00190823.v7"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    source_data <- phen_list$source_data\n\n    # Join datasets.\n    dat <- full_join(source_data$pht003099, source_data$pht000309, by = \"topmed_subject_id\") %>%\n\n      # Convert age to numeric.\n      transmute(topmed_subject_id,\n                cad_followup_start_age = as.numeric(age1),\n                event = as.numeric(EVENT),\n                date = as.numeric(DATE))\n\n    # Create mi_prior variable. Gather all mi events.\n    dat$mi_prior <- replicate(length(dat$event), 0)\n    dat$mi_prior  <- case_when(\n      dat$event == 1 | dat$event == 2 | dat$event == 3 | dat$event == 4 | dat$event == 5 ~ 1,\n      dat$event > 5 ~ 0,\n      is.na(dat$event) ~ NA_real_\n    )\n\n    # Calculate age at event.\n    dat$age_at_event <- replicate(length(dat$event), 0)\n    dat$age_at_event <- floor(dat$cad_followup_start_age + (dat$date / 365.25))\n\n    # Identify prior mi events.\n    dat <- dat %>%\n      mutate(mi_prior = case_when(mi_prior == 1 & date <= 0 ~ 1,\n                                     mi_prior == 1 & date > 0 ~ 0,\n                                     TRUE ~ mi_prior))\n\n    # Find subjects with multiple mi events and select first mi event.\n    mi_event <- dat %>%\n      filter(mi_prior == 1) %>%\n      arrange(topmed_subject_id, date) %>%\n      distinct(topmed_subject_id, .keep_all = TRUE) %>%\n      select(-event)\n\n    # Gather all non-mi-event subjects.\n    non_mi_event <- dat %>%\n      filter(mi_prior == 0) %>%\n      select(-event)\n\n    # Gather all non-event subjects from surv dataset.\n    dat2 <- full_join(source_data$pht003099, source_data$pht003316, by = \"topmed_subject_id\") %>%\n      transmute(topmed_subject_id,\n                cad_followup_start_age = as.numeric(age1),\n                cvd_status = as.numeric(cvd),\n                date = as.numeric(cvddate))\n\n    # Create a non-event specific dataset and remove duplicates.\n    non_event <- dat2 %>%\n      filter(cvd_status == 0) %>%\n      arrange(topmed_subject_id, desc(date)) %>%\n      distinct(topmed_subject_id, .keep_all = TRUE) %>%\n      select(-cvd_status)\n\n    # Create an mi_prior variable for non-event subjects.\n    non_event$mi_prior <- 0\n\n    # Create an age at censoring variable for non-event subjects.\n    non_event$age_at_event <-\n      non_event$cad_followup_start_age + (non_event$date / 365.25)\n\n    # Bind non_event and non_mi_event datasets and remove duplicates.\n    non_event_all <- rbind(non_event, non_mi_event) %>%\n      arrange(topmed_subject_id, desc(date)) %>%\n      distinct(topmed_subject_id, .keep_all = TRUE)\n\n    # Combine all mi-event subjects with non-mi-event subjects.\n    dat_combined <- bind_rows(mi_event, non_event_all) %>%\n      arrange(topmed_subject_id, desc(mi_prior)) %>%\n\n      # Remove duplicate subjects with multiple events.\n      distinct(topmed_subject_id, .keep_all = TRUE) %>%\n      transmute(topmed_subject_id, mi_prior = as.character(mi_prior), age = age_at_event) %>%\n      na.omit()\n\n    return(dat_combined)\n}\n"
+    },
+    {
+      "name": "GENOA",
+      "component_study_variables": ["phs001238.v2.pht006039.v1.phv00277507.v1", "phs001238.v2.pht006043.v1.phv00277598.v1", "phs001238.v2.pht006653.v1.phv00307788.v1", "phs001238.v2.pht006657.v1.phv00307879.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  library(magrittr)\n\n  # Join datasets with age and MI events - Eu cohort.\n  dataset_eu <- dplyr::full_join(phen_list$source_data$pht006657,\n    phen_list$source_data$pht006653) %>%\n    rename(age = AGE, mi_prior = MI)\n\n  dataset_eu2 <- dataset_eu %>%\n      mutate(mi_prior =\n             case_when(mi_prior == \"No\" ~ 0,\n                       mi_prior == \"Yes\" ~ 1,\n                       TRUE ~ NA_real_))\n\n  # Join datasets with age and MI events - AA cohort.\n  dataset_aa <- dplyr::full_join(phen_list$source_data$pht006043,\n    phen_list$source_data$pht006039) %>%\n    rename(age = AGE, mi_prior = MI)\n\n  dataset_aa2 <- dataset_aa %>%\n    mutate(mi_prior =\n           case_when(mi_prior == \"No\" ~ 0,\n                     mi_prior == \"Yes\" ~ 1,\n                     TRUE ~ NA_real_))\n\n\n  # Combine AA and Eu datasets.\n  dataset <- rbind(dataset_aa2, dataset_eu2)\n\n  # Convert age to numeric and mi_prior to character.\n  dataset$age <- as.numeric(dataset$age)\n  dataset$mi_prior <- as.character(dataset$mi_prior)\n\n  # Remove NAs.\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "JHS",
+      "component_study_variables": ["phs000286.v5.pht001949.v1.phv00126009.v1", "phs000286.v5.pht001949.v1.phv00126088.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  library(magrittr)\n\n  dataset <- phen_list$source_data$pht001949 %>%\n    rename(age = AGE01, mi_prior = XMI01)\n\n  # Set missing values to NA.\n  dataset$mi_prior[dataset$mi_prior %in% 'X'] <- NA\n\n  # Convert age to numeric and mi_prior to character.\n  dataset$age <- as.numeric(dataset$age)\n  dataset$mi_prior <- as.character(dataset$mi_prior)\n\n  # Remove NAs.\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
+    },
+    {
+      "name": "MESA",
+      "component_study_variables": ["phs000209.v13.pht001116.v10.phv00084442.v3"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  # Convert age to numeric and set all participants to 0.\n  dat <- transmute(phen_list$source_data$pht001116, topmed_subject_id, age = as.numeric(age1c),\n                   mi_prior = \"0\")\n  return(dat)\n}\n"
+    },
+    {
+      "name": "WHI",
+      "component_study_variables": ["phs000200.v11.pht000998.v6.phv00078436.v6", "phs000200.v11.pht000998.v6.phv00078437.v6", "phs000200.v11.pht000998.v6.phv00078482.v6"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    # Convert age to numeric and rename MI variable.\n    dat <- transmute(\n      phen_list$source_data$pht000998,\n      age = as.numeric(AGE),\n      mi_prior = MI,\n      topmed_subject_id\n    ) %>%\n    # Exclude rows with missing data.\n    na.omit()\n  return(dat)\n}\n"
+    }
+  ]
+}

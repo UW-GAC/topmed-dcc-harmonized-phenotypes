@@ -3,13 +3,13 @@
   "phenotype_concept": "bmi_baseline",
   "concept_variant": 1,
   "description": "Body mass index calculated at baseline.",
-  "version": 3,
-  "dcc_harmonization_id": 103,
+  "version": 4,
+  "dcc_harmonization_id": 153,
   "data_type": "decimal",
   "measurement_units": "kg/m^2",
   "has_age_variable": true,
-  "date_harmonized": "2018-08-24 13:46:21",
-  "dcc_harmonization_comments": "This variable was calculated from harmonized baseline height and weight for all available studies using the formula $BMI = weight / height^2$.\n\n#### HVH\n\nThere are multiple observations for many subjects in the HVH phenotype file. In\nthese instances, we used the earliest observation for harmonization. Although\nthis harmonized phenotype is designated as \"baseline\", the concept of\n\"baseline\" does not apply to HVH based on its study design. Consult the study\ndocumentation for more details (phs001013).\n\n#### GOLDN\n\nWe used a BMI variable calculated by the study as the component variable, not height and weight variables.\n",
+  "date_harmonized": "2019-09-30 16:03:59",
+  "dcc_harmonization_comments": "This variable was calculated from harmonized baseline height and weight for all available studies using the formula $BMI = weight / height^2$.\n\n#### HVH\n\nThere are multiple observations for many subjects in the HVH phenotype data. In\nthese instances, we used the earliest observation of each subject for harmonization. Although\nthis harmonized phenotype is designated as \"baseline\", the concept of\n\"baseline\" does not apply to HVH based on its study design. Consult the study\ndocumentation for more details (phs001013).\n\n#### BAGS\n\nUsing BAGS height and weight data to calculate BMI, we identified 6 implausibly high BMI values. The study investigated and confirmed that these 6 subjects had incorrect values for height and weight component study variables.  The incorrect BMI values for this study can be identified using `bmi_baseline_1` values > 100.  \n\n#### GOLDN\n\nWe used a BMI variable calculated by the study as the component variable, not height and weight variables.\n\n#### SAGE\n\nWe used a BMI variable calculated by the study as the component variable, not height and weight variables.\n\n#### Exam visit for BMI measurement or measurement of component variables\n\n| Study or subcohort | Visit |\n|---------|----------|\n| Amish | Baseline visit |\n| ARIC | Exam 1 |\n| BAGS | Baseline visit |\n| CARDIA |Year 0/Exam 1 |\n| CCAF | *Unspecified first visit* |\n| CFS | Baseline visit |\n| CHS_Original | Baseline visit |\n| CHS_AfricanAmerican | Baseline visit |\n| COPDGene | Baseline visit |\n| CRA | Baseline visit | \n| DHS | Baseline visit |\n| FHS | Exam 1 |\n| GALAII | Baseline visit |\n| GeneSTAR_ProbandSiblingCohort | Sibling Study Visit |\n| GeneSTAR_OffspringCoparentCohort | Platelet Study Visit |\n| GENOA | Phase 1 |\n| GOLDN | Baseline visit |\n| HCHS_SOL | Visit 1 |\n| HVH | *No visit structure* |\n| JHS | Visit 1 |\n| Mayo_VTE_GENEVA | *Unspecified first visit*  |\n| Mayo_VTE_Olmsted | *Unspecified first visit* |\n| MESA_Classic | Exam 1 Main |\n| MESA_Family | Family Exam Main |\n| MESA_AirNR | AirNR Exam Main | \n| MGH_AF | *Unspecified first visit* |\n| Partners | Baseline visit |\n| SAGE | Exam 1, initial interview |\n| SAS | Exam 1 |\n| VAFAR | *Unspecified first visit* |\n| VU_AF | *Unspecified first visit* |\n| WGHS | Exam 1 |\n| WHI | Screening, Year 0 |\n\n",
   "encoded_values": [],
   "controlled_vocabulary": [
     {
@@ -24,23 +24,35 @@
       "component_study_variables": [],
       "component_harmonized_variables": [
         {
-          "dcc_harmonization_id": 99,
+          "dcc_harmonization_id": 151,
           "name": "height_baseline_1",
-          "version": 4
+          "version": 5
         },
         {
-          "dcc_harmonization_id": 100,
+          "dcc_harmonization_id": 152,
           "name": "weight_baseline_1",
-          "version": 3
+          "version": 4
         }
       ],
-      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    harmonized_data <- phen_list$harmonized_data\n    # Join baseline height and weight datasets on topmed_subject_id\n    harmonized_data$height_baseline_1 %>%\n        inner_join(harmonized_data$weight_baseline_1, \"topmed_subject_id\") %>%\n        # Convert character variables to numeric\n        mutate_if(is.character, as.numeric) %>%\n        # Filter to observations where age variables match\n        filter(age_at_height_baseline_1 == age_at_weight_baseline_1) %>%\n        transmute(topmed_subject_id, age = age_at_height_baseline_1,\n            # Calculate BMI from weight(in kg) and height (in cm)\n            bmi_baseline = weight_baseline_1 / (height_baseline_1 / 100) ^ 2) %>%\n        # Exclude incomplete records\n        na.omit() %>%\n        return()\n}\n"
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  harmonized_data <- phen_list$harmonized_data\n  # Join baseline height and weight datasets on topmed_subject_id\n  harmonized_data <- inner_join(harmonized_data$height_baseline_1,\n                                harmonized_data$weight_baseline_1,\n                                \"topmed_subject_id\") %>%\n                     select(-c(unit_height_baseline_1, unit_weight_baseline_1))\n\n  # Convert character variables to numeric\n  harmonized_data <- replace(harmonized_data, harmonized_data == 'NA', NA) %>%\n                     mutate_if(is.character, as.numeric)\n  # Filter to observations where age variables match\n  harmonized_data <- harmonized_data %>%\n                     filter(age_at_height_baseline_1 == age_at_weight_baseline_1) %>%\n                     transmute(topmed_subject_id, age = age_at_height_baseline_1,\n  # Calculate BMI from weight(in kg) and height (in cm)\n  bmi_baseline = weight_baseline_1 / (height_baseline_1 / 100) ^ 2)\n\n  # Exclude incomplete records\n  harmonized_data <- harmonized_data %>%\n  select(topmed_subject_id, bmi_baseline, age) %>%\n  na.omit() %>%\n  return()\n}\n"
+    },
+    {
+      "name": "GALAII",
+      "component_study_variables": ["phs001180.v1.pht006991.v1.phv00320630.v1", "phs001180.v1.pht006991.v1.phv00320633.v1"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  dataset <- phen_list$source_data$pht006991\n  dataset <- replace(dataset, dataset == 'NA', NA)\n  dataset <- dataset %>%\n             transmute(topmed_subject_id,\n                       age = as.numeric(AGE),\n                       bmi_baseline = as.numeric(BMI)) %>%\n             na.omit() %>%\n             return()\n}\n"
     },
     {
       "name": "GOLDN",
       "component_study_variables": ["phs000741.v2.pht003918.v2.phv00202104.v2", "phs000741.v2.pht003918.v2.phv00259051.v1"],
       "component_harmonized_variables": [],
       "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    phen_list$source_data$pht003918 %>%\n        # Convert BMI to numeric and rename\n        transmute(topmed_subject_id, age, bmi_baseline = as.numeric(BMI)) %>%\n        # Exclude incomplete records\n        na.omit() %>%\n        return()\n}\n"
+    },
+    {
+      "name": "SAGE",
+      "component_study_variables": ["phs000921.v3.pht004883.v3.phv00252283.v3", "phs000921.v3.pht004883.v3.phv00252286.v3"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  #Dataset\n  dataset <- phen_list$source_data$pht004883 %>%\n             rename(age = AGE, bmi_baseline = BMI)\n\n  #Convert to numeric variables\n  dataset <- replace(dataset, dataset == 'NA', NA) %>%\n             mutate_if(is.character, as.numeric)\n\n  #Remove missing values\n  dataset <- na.omit(dataset)\n\n  return(dataset)\n}\n"
     }
   ]
 }

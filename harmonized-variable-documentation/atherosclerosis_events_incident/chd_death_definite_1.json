@@ -1,0 +1,44 @@
+{
+  "name": "chd_death_definite_1",
+  "phenotype_concept": "chd_death_definite",
+  "concept_variant": 1,
+  "description": "An indicator of whether the cause of death was determined by medical professionals or technicians to be \"definite\" coronary heart disease for subjects who died during the follow-up period.",
+  "version": 1,
+  "dcc_harmonization_id": 166,
+  "data_type": "encoded",
+  "measurement_units": null,
+  "has_age_variable": true,
+  "date_harmonized": "2019-10-31 16:34:13",
+  "dcc_harmonization_comments": "This variable was harmonized by using  \"death type\" and \"death status\" variables to classify individuals whose cause of death was determined to be definitely related to CHD.\n\nThis variable should be consistent with the harmonized variable `chd_death_probable_1` in that all \"definite\" cases should also be \"probable\" cases.\n\n",
+  "encoded_values": [
+    {
+      "code": "0",
+      "value": "Death did not occur during follow-up, or cause of CHD death was not determined as definite CHD"
+    },
+    {
+      "code": "1",
+      "value": "CHD death occurred during follow-up and was determined as definite"
+    }
+  ],
+  "controlled_vocabulary": [
+    {
+      "source": "UMLS",
+      "version": "2019AA",
+      "id": "C3844303"
+    }
+  ],
+  "harmonization_units": [
+    {
+      "name": "FHS",
+      "component_study_variables": ["phs000007.v30.pht000309.v13.phv00036469.v12", "phs000007.v30.pht000309.v13.phv00036471.v12", "phs000007.v30.pht003099.v5.phv00177930.v5", "phs000007.v30.pht003316.v7.phv00190817.v7", "phs000007.v30.pht003316.v7.phv00190823.v7"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    source_data <- phen_list$source_data\n\n      # Join datasets.\n      dat <- full_join(source_data$pht003099, source_data$pht000309, by = \"topmed_subject_id\") %>%\n\n        # Convert age to numeric.\n        transmute(topmed_subject_id,\n                  cad_followup_start_age = as.numeric(age1),\n                  event = as.numeric(EVENT),\n                  date = as.numeric(DATE))\n\n      # Create chd_death_definite variable. Gather all chd_death_definite events.\n      dat$chd_death_definite <- replicate(length(dat$event), 0)\n      dat$chd_death_definite  <- case_when(\n        dat$event == 9 | dat$event == 21 | dat$event == 22 | dat$event == 23 | dat$event == 24 ~ 1,\n        dat$event != 9 & dat$event < 21 | dat$event > 24 ~ 0,\n        is.na(dat$event) ~ NA_real_\n      )\n\n      # Calculate age at event.\n      dat$age_at_event <- replicate(length(dat$event), 0)\n      dat$age_at_event <- floor(dat$cad_followup_start_age + (dat$date / 365.25))\n\n      # Create a chd_death event dataset.\n      chd_death_event <- dat %>%\n        filter(chd_death_definite == 1)\n\n      # Gather all non-chd_death-event subjects and remove duplicate subjects.\n      non_chd_death_event <- dat %>%\n        filter(chd_death_definite == 0) %>%\n        arrange(topmed_subject_id, desc(date)) %>%\n        distinct(topmed_subject_id, .keep_all = TRUE)\n\n      # Gather all non-event subjects from surv dataset and remove duplicates.\n      dat2 <- full_join(source_data$pht003099, source_data$pht003316, by = \"topmed_subject_id\") %>%\n        transmute(topmed_subject_id,\n                  cad_followup_start_age = as.numeric(age1),\n                  cvd_status = as.numeric(cvd),\n                  surv_date = as.numeric(cvddate))\n\n      # Create a non-event specific dataset.\n      non_event <- dat2 %>%\n        filter(cvd_status == 0) %>%\n        arrange(topmed_subject_id, desc(surv_date)) %>%\n        distinct(topmed_subject_id, .keep_all = TRUE)\n\n      # Create a chd_death variable for non-event subjects.\n      non_event$chd_death_definite <- replicate(length(non_event$cvd_status), 0)\n\n      # Create an age at censoring variable for non-event subjects.\n      non_event$age_at_event <- replicate(length(non_event$cvd_status), 0)\n      non_event$age_at_event <-\n        floor(non_event$cad_followup_start_age + (non_event$surv_date / 365.25))\n\n      # Create an event variable for non_event subjects.\n      non_event$event <- replicate(length(non_event$cvd_status), 0)\n\n      # Combine all chd_death-event subjects with non-chd_death-event subjects.\n      dat_combined <- bind_rows(chd_death_event, non_chd_death_event)\n\n      # Remove duplicate subjects with multiple events.\n      dat_combined <- dat_combined %>%\n        arrange(topmed_subject_id, desc(chd_death_definite)) %>%\n        distinct(topmed_subject_id, .keep_all = TRUE)\n\n      # Join combined events data with non-events data.\n      all_dat <- full_join(dat_combined, non_event, by = \"topmed_subject_id\")\n\n      # Set all remaining non-event subjects to chd_death_definite = 0.\n      inds_event <- which(is.na(all_dat$chd_death_definite.x) & all_dat$chd_death_definite.y == 0)\n      all_dat$chd_death_definite.x[inds_event] <- 0\n\n      # Combine age at censoring with age at event into one variable.\n      inds_age <- which(is.na(all_dat$age_at_event.x) & !is.na(all_dat$age_at_event.y))\n      all_dat$age_at_event.x[inds_age] <- all_dat$age_at_event.y[inds_age]\n\n      # Set follow up start age for all remaining subjects.\n      inds_age_start <-\n        which(is.na(all_dat$cad_followup_start_age.x) & !is.na(all_dat$cad_followup_start_age.y))\n      all_dat$cad_followup_start_age.x[inds_age_start] <-\n        all_dat$cad_followup_start_age.y[inds_age_start]\n\n      # Select columns for final dataset.\n      all_dat <- all_dat %>%\n        transmute(topmed_subject_id,\n                  chd_death_definite = as.character(chd_death_definite.x),\n                  age = age_at_event.x) %>%\n        na.omit()\n\n    return(all_dat)\n}\n"
+    },
+    {
+      "name": "WHI",
+      "component_study_variables": ["phs000200.v11.pht000998.v6.phv00078436.v6", "phs000200.v11.pht000998.v6.phv00078437.v6", "phs000200.v11.pht003395.v3.phv00192302.v3", "phs000200.v11.pht003407.v3.phv00193498.v3", "phs000200.v11.pht003407.v3.phv00193504.v3", "phs000200.v11.pht003407.v3.phv00193505.v3", "phs000200.v11.pht003409.v3.phv00193531.v2", "phs000200.v11.pht003409.v3.phv00193532.v2"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n  library(dplyr)\n  # Join all datasets.\n  dat <- plyr::join_all(phen_list$source_data, \"topmed_subject_id\", \"full\") %>%\n    # Convert numeric variables to numeric type.\n    mutate_at(vars(ends_with(\"DY\"), AGE, F2DAYS), as.numeric) %>%\n    # Set positive F2DAYS values to 0.\n    mutate_at(vars(F2DAYS), function(x) case_when(x > 0 ~ 0, TRUE ~ x)) %>%\n    # Calculate age at event/censoring.\n    mutate(censordy = ifelse(EXT2MRC == 1, ENDFOLLOWDY, ENDEXT1DY),\n           eventdy = ifelse(DEATH %in% 1, DEATHDY, censordy),\n           age = AGE + (abs(F2DAYS) + eventdy) / 365.25,\n           # Compute harmonized CHD death from death and cause-of-death variables.\n           chd_death_definite = case_when(DEATH == 1 & DEATHCAUSE %in% 11 ~ \"1\", TRUE ~ \"0\")) %>%\n    select(topmed_subject_id, chd_death_definite, age) %>%\n    # Exclude rows with missing data.\n    na.omit()\n  return(dat)\n}\n"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "name": "cabg_incident_1",
+  "phenotype_concept": "cabg_incident",
+  "concept_variant": 1,
+  "description": "An indicator of whether a subject had a coronary artery bypass graft (CABG) procedure (that was verified by adjudication or by medical professionals) during the follow-up period.",
+  "version": 1,
+  "dcc_harmonization_id": 163,
+  "data_type": "encoded",
+  "measurement_units": null,
+  "has_age_variable": true,
+  "date_harmonized": "2019-10-31 16:33:20",
+  "dcc_harmonization_comments": "This variable was harmonized by appropriately converting component variables to a binary variable indicating the occurrence of a CABG procedure during follow-up. If a study recorded multiple procedures, the DCC harmonized only the earliest event after the start of follow-up, and the corresponding age at event was used for the accompanying age variable. Unless otherwise stated, the age variable accompanying this variable represents the study participants' age when the CABG procedure occurred or the age at last follow-up or death for those participants who did not have a CABG procedure.\n\n\n### Study-specific comments\n\n#### FHS\n\nThe data available for CABG includes procedures through December 2016. The data available for participants who did not have a CABG procedure is through December 2014. Therefore, the accompanying age variable for participants who did not have a CABG procedure is recorded through 2014, while participants who did have a CABG procedure have their age recorded through 2016. \n\n",
+  "encoded_values": [
+    {
+      "code": "0",
+      "value": "CABG procedure did not occur during follow-up"
+    },
+    {
+      "code": "1",
+      "value": "CABG procedure occurred during follow-up"
+    }
+  ],
+  "controlled_vocabulary": [
+    {
+      "source": "UMLS",
+      "version": "2019AA",
+      "id": "C0010055"
+    }
+  ],
+  "harmonization_units": [
+    {
+      "name": "FHS",
+      "component_study_variables": ["phs000007.v30.pht000389.v10.phv00054697.v8", "phs000007.v30.pht000389.v10.phv00163410.v7", "phs000007.v30.pht003099.v5.phv00177930.v5", "phs000007.v30.pht003316.v7.phv00190817.v7", "phs000007.v30.pht003316.v7.phv00190823.v7"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    source_data <- phen_list$source_data\n\n    # Join datasets.\n    dat <- full_join(source_data$pht003099, source_data$pht000389, by = \"topmed_subject_id\") %>%\n      # Convert age to numeric.\n      transmute(topmed_subject_id,\n                cabg_incident = ifelse(as.numeric(VESSEL) > 0, 1, 0),\n                date = as.numeric(PROCDATE),\n                cad_followup_start_age = as.numeric(age1))\n\n    ## Calculate age at event.\n    dat$age_at_event <- replicate(length(dat$cabg_incident), 0)\n    dat$age_at_event <- floor(dat$cad_followup_start_age + (dat$date / 365.25))\n\n    # Identify prior cabg events.\n    dat <- dat %>%\n      mutate(cabg_incident = case_when(date <= 0 ~ 0,\n                                     cabg_incident == 1 & date > 0 ~ 1,\n                                     TRUE ~ cabg_incident))\n\n    # Find subjects with multiple cabg events and select first cabg event.\n    cabg_event <- dat %>%\n      filter(cabg_incident == 1) %>%\n      arrange(topmed_subject_id, date) %>%\n      distinct(topmed_subject_id, .keep_all = TRUE)\n\n    # Gather all non-cabg-event subjects and remove duplicate subjects.\n    non_cabg_event <- dat %>%\n      filter(cabg_incident == 0)\n\n    # Gather all non-event subjects from surv dataset.\n    dat2 <- full_join(source_data$pht003099, source_data$pht003316, by = \"topmed_subject_id\") %>%\n      transmute(topmed_subject_id,\n                cad_followup_start_age = as.numeric(age1),\n                cvd_status = as.numeric(cvd),\n                date = as.numeric(cvddate))\n\n    # Create a non-event specific dataset and remove duplicates.\n    non_event <- dat2 %>%\n      filter(cvd_status == 0) %>%\n      arrange(topmed_subject_id, desc(date)) %>%\n      distinct(topmed_subject_id, .keep_all = TRUE) %>%\n      select(-cvd_status)\n\n    # Create an cabg_incident variable for non-event subjects.\n    non_event$cabg_incident <- 0\n\n    # Create an age at censoring variable for non-event subjects.\n    non_event$age_at_event <-\n      non_event$cad_followup_start_age + (non_event$date / 365.25)\n\n    # Bind non_event and non_cabg_event datasets and remove duplicates.\n    non_event_all <- rbind(non_event, non_cabg_event) %>%\n      arrange(topmed_subject_id, desc(date)) %>%\n      distinct(topmed_subject_id, .keep_all = TRUE)\n\n    # Combine all cabg-event subjects with non-cabg-event subjects.\n    dat_combined <- bind_rows(cabg_event, non_event_all) %>%\n      arrange(topmed_subject_id, desc(cabg_incident)) %>%\n\n      # Remove duplicate subjects with multiple events.\n      distinct(topmed_subject_id, .keep_all = TRUE) %>%\n      transmute(topmed_subject_id,\n                cabg_incident = as.character(cabg_incident),\n                age = age_at_event) %>%\n      na.omit()\n\n    return(dat_combined)\n}\n"
+    },
+    {
+      "name": "WHI",
+      "component_study_variables": ["phs000200.v11.pht000998.v6.phv00078436.v6", "phs000200.v11.pht000998.v6.phv00078437.v6", "phs000200.v11.pht003395.v3.phv00192302.v3", "phs000200.v11.pht003407.v3.phv00193157.v3", "phs000200.v11.pht003407.v3.phv00193158.v3", "phs000200.v11.pht003407.v3.phv00193504.v3", "phs000200.v11.pht003407.v3.phv00193505.v3"],
+      "component_harmonized_variables": [],
+      "harmonization_function": "harmonize <- function(phen_list){\n    library(dplyr)\n    # Join all dataframes in the list.\n    dat <- plyr::join_all(phen_list$source_data, \"topmed_subject_id\", \"full\") %>%\n        # Convert numeric variables to numeric type.\n        mutate_at(vars(ends_with(\"DY\"), AGE, F2DAYS), as.numeric) %>%\n        # Set positive F2DAYS values to 0.\n        mutate_at(vars(F2DAYS), function(x) case_when(x > 0 ~ 0, TRUE ~ x)) %>%\n        # Calculate age at event/censoring.\n        mutate(censordy = case_when(EXT2MRC == 1 ~ ENDFOLLOWDY, TRUE ~ ENDEXT1DY),\n               eventdy = case_when(CABG == 1 ~ CABGDY, CABG == 0 ~ censordy),\n               age = AGE + (abs(F2DAYS) + eventdy) / 365.25) %>%\n        # Drop old variables.\n        select(topmed_subject_id, cabg_incident = CABG, age) %>%\n        # Exclude rows with missing data.\n        na.omit()\n    return(dat)\n}\n"
+    }
+  ]
+}

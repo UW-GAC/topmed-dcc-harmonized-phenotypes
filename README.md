@@ -1,7 +1,7 @@
 An introduction to the TOPMed DCC’s harmonized variable documentation
 ================
 Adrienne Stilp
-09 July, 2021
+04 October, 2021
 
 This repository contains documentation for phenotypes harmonized by the
 [Trans-Omics for Precision Medicine (TOPMed)
@@ -16,8 +16,7 @@ used for harmonization comes from
 harmonization process will be described further in a paper. The
 reference will be added upon publication.
 
-Repository contents
--------------------
+## Repository contents
 
 | file                                 | description                                                                                                                                                                                              |
 |--------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -28,8 +27,7 @@ Repository contents
 | `README.md`                          | This document.                                                                                                                                                                                           |
 | `README.Rmd`                         | Source for this document.                                                                                                                                                                                |
 
-Study mapping file
-------------------
+## Study mapping file
 
 The phenotypes for each TOPMed study come from one or more dbGaP study
 accession. The `phs-mapping.tsv` file provides a mapping between a dbGaP
@@ -43,8 +41,7 @@ studies for different subjects. For a single study with phenotypes
 located in two different study accessions on dbGaP, the unique id values
 (and the TOPMed study abbreviation) in this file are the same.
 
-Example harmonization
----------------------
+## Example harmonization
 
 This directory contains simulated study dbGaP data and JSON
 documentation for three example harmonized variables created from the
@@ -52,8 +49,7 @@ simulated study data. There are also three example JSON documents
 showing how to reproduce the harmonized variables. See
 `example/README.md` for instructions on running the examples.
 
-Harmonized variable documentation
----------------------------------
+## Harmonized variable documentation
 
 All information necessary to reproduce a harmonized variable is
 available in a single JSON document file. The
@@ -185,8 +181,7 @@ More details about how to use this information are available in the
 three example documents in the `examples` directory. See the Example
 Harmonization section above for more information.
 
-dbGaP consent considerations
-----------------------------
+## dbGaP consent considerations
 
 We do not provide participant consent values with the harmonized
 phenotype documentation. Because the harmonized data are derived from
@@ -196,8 +191,7 @@ harmonization. Users must therefore ensure that the harmonized data are
 used in accordance with the data use limitations for each consent group
 to which they have access.
 
-Race and ancestry guidelines
-----------------------------
+## Race and ancestry guidelines
 
 This repository contains documentation for harmonization of race and
 ethnicity variables in TOPMed. If you wish to use them in your analysis,
@@ -206,13 +200,14 @@ ethnicity, and ancestry in the NHLBI Trans-Omics for Precision Medicine
 (TOPMed)
 program](https://www.nhlbiwgs.org/guidelines-use-and-reporting-race-ethnicity-and-ancestry-topmed).
 
-Citation
---------
+## Citation
 
 If you have used the documentation in this repository, please cite the
 following paper:
 
 Stilp AM, Emery LS, et al. A System for Phenotype Harmonization in the
-NHLBI Trans-Omics for Precision Medicine (TOPMed) Program. Am J
-Epidemiol. 2021 Apr 16:kwab115. doi: 10.1093/aje/kwab115. Epub ahead of
-print. PMID: [33861317](https://pubmed.ncbi.nlm.nih.gov/33861317/).
+National Heart, Lung, and Blood Institute Trans-Omics for Precision
+Medicine (TOPMed) Program. Am J Epidemiol. 2021 Oct 1;190(10):1977-1992.
+doi: 10.1093/aje/kwab115. PMID:
+[33861317](https://pubmed.ncbi.nlm.nih.gov/33861317/); PMCID:
+[PMC8485147](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8485147/).

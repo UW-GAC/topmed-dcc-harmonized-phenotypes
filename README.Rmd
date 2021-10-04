@@ -126,4 +126,4 @@ If you wish to use them in your analysis, please refer to the [Guidelines on the
 
 If you have used the documentation in this repository, please cite the following paper:
 
-Stilp AM, Emery LS, et al. A System for Phenotype Harmonization in the NHLBI Trans-Omics for Precision Medicine (TOPMed) Program. Am J Epidemiol. 2021 Apr 16:kwab115. doi: 10.1093/aje/kwab115. Epub ahead of print. PMID: [33861317](https://pubmed.ncbi.nlm.nih.gov/33861317/).
+Stilp AM, Emery LS, et al. A System for Phenotype Harmonization in the National Heart, Lung, and Blood Institute Trans-Omics for Precision Medicine (TOPMed) Program. Am J Epidemiol. 2021 Oct 1;190(10):1977-1992. doi: 10.1093/aje/kwab115. PMID: [33861317](https://pubmed.ncbi.nlm.nih.gov/33861317/); PMCID: [PMC8485147](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8485147/).
